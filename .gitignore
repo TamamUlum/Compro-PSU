@@ -82,8 +82,13 @@ backend/.admin-fallback.json
 *.rar
 *.7z
 
-# Database dump files with potential sensitive credentials
-*.sql
+# Database dump files with potential sensitive credentials (targeted ignore patterns; do NOT blanket-ignore schema files)
+*.dump.sql
+backup*.sql
+*_backup.sql
+*.dump
+dump.sql
+!backend/database/*.sql
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

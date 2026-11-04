@@ -244,6 +244,45 @@ function isOriginAllowed(origin) {
   }
 }
 
+// ============================================================================
+// SECURITY HEADERS & DEFENSE-IN-DEPTH (SEC-009)
+// ============================================================================
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  // CSP: dimulakan dengan Report-Only untuk menjamin kompatibilitas runtime frontend
+  res.setHeader(
+    "Content-Security-Policy-Report-Only",
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: /news/; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
+  );
+  // HSTS: hanya diwajibkan dan dikirim pada respon HTTPS terverifikasi (tanpa includeSubDomains / preload)
+  const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
+  if (isHttps) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000");
+  }
+  next();
+});
+
+// ============================================================================
+// STRUCTURED OPERATIONAL LOGGING (NEW-001)
+// ============================================================================
+app.use((req, res, next) => {
+  const start = Date.now();
+  const clientIp = getClientIp(req);
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (process.env.NODE_ENV !== "test") {
+      const sanitizedUrl = (req.originalUrl || req.url || "").split("?")[0];
+      console.log(
+        `[${new Date().toISOString()}] [${clientIp}] ${req.method} ${sanitizedUrl} ${res.statusCode} ${duration}ms`
+      );
+    }
+  });
+  next();
+});
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -301,7 +340,24 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json({ limit: "25mb" }));
+// ============================================================================
+// REQUEST BODY PARSER LIMIT (SEC-010)
+// ============================================================================
+// Global JSON dan urlencoded dibatasi maksimal 1 MB untuk mitigasi DoS
+const globalJsonParser = express.json({ limit: "1mb" });
+const globalUrlencodedParser = express.urlencoded({ limit: "1mb", extended: true });
+const uploadJsonParser = express.json({ limit: "10mb" });
+
+app.use((req, res, next) => {
+  // Pengecualian rute upload gambar yang memerlukan kapasitas payload base64 hingga 10MB
+  if (req.path === "/api/upload-gambar") {
+    return next();
+  }
+  globalJsonParser(req, res, (err) => {
+    if (err) return next(err);
+    globalUrlencodedParser(req, res, next);
+  });
+});
 
 function csrfProtection(req, res, next) {
   const stateChangingMethods = ["POST", "PUT", "PATCH", "DELETE"];
@@ -354,6 +410,28 @@ function csrfProtection(req, res, next) {
 }
 
 app.use(csrfProtection);
+
+// ============================================================================
+// HEALTH CHECK MONITORING ENDPOINT (NEW-001)
+// ============================================================================
+// Endpoint monitoring kesehatan server dan ketersediaan database tanpa ekspos kredensial
+app.get("/api/health", async (req, res) => {
+  let dbStatus = "connected";
+  if (!pool) {
+    dbStatus = "fallback_store";
+  } else {
+    try {
+      await pool.query("SELECT 1");
+    } catch {
+      dbStatus = "fallback_store";
+    }
+  }
+  return res.json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    database: dbStatus,
+  });
+});
 
 // Sajikan folder gambar berita secara statis agar bisa diakses langsung dari backend maupun Vite
 const publicNewsDir = path.join(__dirname, "..", "company-profile", "public", "news");
@@ -913,24 +991,36 @@ function validateEmail(email) {
 }
 
 // ============================================================================
-// SANITASI INPUT KONTEN HTML & ANTI-STORED XSS (SEC-007)
+// SANITASI INPUT KONTEN HTML & ANTI-STORED XSS (SEC-007 & WP-3.8)
+// Dilengkapi dengan AST-style Tag Allowlist & Recursive Neutralization (Defense-in-Depth)
 // ============================================================================
+const ALLOWED_HTML_TAGS = new Set([
+  "p", "br", "strong", "b", "em", "i", "u", "s",
+  "h1", "h2", "h3", "h4", "h5", "h6",
+  "ul", "ol", "li", "blockquote", "span", "div",
+  "a", "img", "hr", "table", "thead", "tbody", "tr", "th", "td"
+]);
+
 function sanitizeHtmlContent(htmlInput) {
   if (!htmlInput || typeof htmlInput !== "string") return "";
   let sanitized = htmlInput;
 
-  // 1. Hapus tag berbahaya berpasangan beserta isinya
-  sanitized = sanitized.replace(
-    /<\s*(script|style|iframe|object|embed|applet|meta|link|base|form|input|button|textarea)[\s\S]*?>[\s\S]*?<\s*\/\s*\1\s*>/gi,
-    ""
-  );
-  // Hapus tag berbahaya mandiri / self-closing
-  sanitized = sanitized.replace(
-    /<\s*(script|style|iframe|object|embed|applet|meta|link|base|form|input|button|textarea)[^>]*\/?>/gi,
-    ""
-  );
+  // 1. Recursive removal of dangerous tag blocks (script, style, iframe, object, embed, svg, math, form, etc.)
+  let prev;
+  do {
+    prev = sanitized;
+    sanitized = sanitized.replace(
+      /<\s*(script|style|iframe|object|embed|applet|meta|link|base|form|input|button|textarea|svg|math)[\s\S]*?>[\s\S]*?<\s*\/\s*\1\s*>/gi,
+      ""
+    );
+    sanitized = sanitized.replace(
+      /<\s*(script|style|iframe|object|embed|applet|meta|link|base|form|input|button|textarea|svg|math)[^>]*\/?>/gi,
+      ""
+    );
+  } while (sanitized !== prev);
 
-  // 2. Hapus seluruh atribut event handler on* (seperti onload=, onerror=, onclick=, onfocus=, dll)
+  // 2. Hapus seluruh komentar HTML dan atribut event handler on*
+  sanitized = sanitized.replace(/<!--[\s\S]*?-->/g, "");
   sanitized = sanitized.replace(
     /(\s+)on[a-z0-9_-]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi,
     ""
@@ -945,6 +1035,47 @@ function sanitizeHtmlContent(htmlInput) {
     /(href|src)\s*=\s*(?:javascript|vbscript|data:(?!image\/)):[^\s>]+/gi,
     '$1="#"'
   );
+
+  // 4. Tag Allowlist enforcement: hanya izinkan tag yang terdaftar dalam ALLOWED_HTML_TAGS
+  sanitized = sanitized.replace(/<\/?([a-zA-Z0-9_-]+)([^>]*)>/g, (match, tagName, attrs) => {
+    const lowerTag = tagName.toLowerCase();
+    if (!ALLOWED_HTML_TAGS.has(lowerTag)) {
+      return "";
+    }
+    const isClosing = match.startsWith("</");
+    if (isClosing) {
+      return `</${lowerTag}>`;
+    }
+
+    // Pembersihan atribut untuk tag yang diizinkan
+    let cleanAttrs = "";
+    const attrRegex = /([a-zA-Z0-9_-]+)(?:\s*=\s*(?:'([^']*)'|"([^"]*)"|([^\s>]+)))?/g;
+    let m;
+    while ((m = attrRegex.exec(attrs)) !== null) {
+      const attrName = m[1].toLowerCase();
+      let attrVal = m[2] !== undefined ? m[2] : (m[3] !== undefined ? m[3] : (m[4] || ""));
+
+      if (attrName.startsWith("on")) continue;
+
+      if (lowerTag === "a" && attrName === "href") {
+        const checkVal = attrVal.trim().replace(/[\x00-\x20]/g, "");
+        if (/^(javascript|vbscript|data):/i.test(checkVal)) {
+          cleanAttrs += ' href="#"';
+        } else {
+          cleanAttrs += ` href="${attrVal.replace(/"/g, "&quot;")}"`;
+        }
+      } else if (lowerTag === "img" && attrName === "src") {
+        const checkVal = attrVal.trim().replace(/[\x00-\x20]/g, "");
+        if (/^(javascript|vbscript):/i.test(checkVal) || (checkVal.startsWith("data:") && !checkVal.startsWith("data:image/"))) {
+          continue;
+        }
+        cleanAttrs += ` src="${attrVal.replace(/"/g, "&quot;")}"`;
+      } else if (["alt", "title", "class", "width", "height", "target", "rel"].includes(attrName)) {
+        cleanAttrs += ` ${attrName}="${attrVal.replace(/"/g, "&quot;")}"`;
+      }
+    }
+    return `<${lowerTag}${cleanAttrs}>`;
+  });
 
   return sanitized;
 }
@@ -3054,7 +3185,7 @@ app.get("/api/galeri", async (req, res) => {
   }
 });
 
-app.post("/api/upload-gambar", requireAdminAuth, uploadRateLimiter, async (req, res) => {
+app.post("/api/upload-gambar", uploadJsonParser, requireAdminAuth, uploadRateLimiter, async (req, res) => {
   try {
     const { filename, title, alt_text, category } = req.body || {};
     const dataUrl = req.body?.dataUrl || req.body?.image;
@@ -3106,7 +3237,7 @@ app.post("/api/upload-gambar", requireAdminAuth, uploadRateLimiter, async (req, 
 
     const buffer = Buffer.from(base64Data, "base64");
 
-    // Validasi ukuran buffer biner (minimal 64 byte, maksimal 8 MB)
+    // Validasi ukuran buffer biner (minimal 64 byte, maksimal 5 MB - SEC-010)
     if (buffer.length < 64) {
       return res.status(400).json({
         success: false,
@@ -3114,10 +3245,10 @@ app.post("/api/upload-gambar", requireAdminAuth, uploadRateLimiter, async (req, 
       });
     }
 
-    if (buffer.length > 8 * 1024 * 1024) {
+    if (buffer.length > 5 * 1024 * 1024) {
       return res.status(413).json({
         success: false,
-        message: "Ukuran file gambar melampaui batas maksimal 8 MB.",
+        message: "Ukuran file gambar melampaui batas maksimal 5 MB.",
       });
     }
 
@@ -4280,13 +4411,29 @@ app.get("/api/sertifikat/:submenu", generalApiLimiter, async (req, res) => {
     console.error("Database query error:", error.message);
     return res.status(500).json({
       success: false,
-      message:
-        "Gagal terhubung ke database MySQL (" +
-        error.message +
-        "). Pastikan MySQL di XAMPP sudah Start.",
-      error: error.message,
+      message: "Gagal memproses pengecekan sertifikat pada database.",
     });
   }
+});
+
+// ============================================================================
+// CENTRALIZED ERROR HANDLER (SEC-009)
+// ============================================================================
+app.use((err, req, res, next) => {
+  if (err) {
+    if (err.type === "entity.too.large" || err.status === 413) {
+      return res.status(413).json({
+        success: false,
+        message: "Ukuran payload request melebihi batas yang diizinkan (maksimal 1 MB).",
+      });
+    }
+    console.error("[CENTRAL_ERROR_HANDLER]", err.message || err);
+    return res.status(err.status || 500).json({
+      success: false,
+      message: "Terjadi kesalahan internal pada server.",
+    });
+  }
+  next();
 });
 
 if (require.main === module) {

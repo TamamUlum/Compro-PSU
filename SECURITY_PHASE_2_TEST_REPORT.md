@@ -94,3 +94,4 @@
    - Manipulasi sesi lintas-domain dimitigasi di 2 lapisan: verifikasi origin whitelist CORS (SEC-007) dan double-submit CSRF token (SEC-006).
    - Kebocoran otorisasi pengguna dinonaktifkan dimitigasi secara instan melalui validasi status akun langsung dan versioning token di database (SEC-008).
    - Kegagalan password hash dimitigasi dengan eliminasi total fallback plaintext (SEC-005).
+

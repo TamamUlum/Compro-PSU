@@ -1,40 +1,71 @@
 # ============================================================================
-# .htaccess untuk https://psu.nwyan.com  (React SPA + Node.js API)
-# CARA PAKAI:
-#   1. cPanel -> File Manager -> masuk folder public_html
-#   2. Klik "+ File" -> nama file: .htaccess   (titik di depan, tanpa .txt)
-#   3. Klik kanan .htaccess -> Edit -> paste SEMUA isi file ini -> Save
+# .htaccess HARDENED PRODUCTION CONFIGURATION (SEC-011)
+# PT PENILAI STANDAR UJI (PSU) — React SPA + Node.js (cPanel + Passenger)
+# Topologi: Mendukung Direct Origin maupun Reverse Proxy (Cloudflare / Nginx)
 # ============================================================================
 
-Options -Indexes
+# 1. Nonaktifkan Directory Browsing
+Options -Indexes -MultiViews
 DirectoryIndex index.html
 
-<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteBase /
+# 2. Blokir Akses ke File & Direktori Sensitif
+<FilesMatch "^\.|\.(env|git|gitignore|sql|dump|bak|old|orig|log|yml|yaml|json|lock)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>
 
+# 3. Blokir Eksekusi Skrip pada Direktori Upload Media
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Cegah eksekusi skrip (PHP, Perl, CGI, Python, Shell) di folder media/uploads
+  RewriteRule ^(news|uploads)/.*\.(php[0-9]?|phtml|cgi|pl|py|sh|bash)$ - [F,L,NC]
+
+  # --- 4. Paksa HTTPS dengan Mitigasi Redirect Loop Cloudflare ---
+  # Mendukung mode Cloudflare Flexible SSL, Full SSL, dan Full (Strict) SSL:
+  # Memeriksa X-Forwarded-Proto dan CF-Visitor agar tidak memicu infinite redirect loop (ERR_TOO_MANY_REDIRECTS)
+  RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+  RewriteCond %{HTTP:CF-Visitor} !'"scheme":"https"' [NC]
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # --- 5. Routing API & Passenger Node.js ---
+  # Jangan ganggu request yang ditujukan ke endpoint backend API
   RewriteRule ^api(/|$) - [L]
 
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
+  # --- 6. Layani File/Folder Fisik Statis yang Benar-Benar Ada ---
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
 
-RewriteRule ^news/(.*)$ /api/news/$1 [L]
+  # --- 7. URL Rewriting Gambar Uploaded Media ---
+  RewriteRule ^news/(.*)$ /api/news/$1 [L]
 
-RewriteRule ^ index.html [L]
+  # --- 8. Fallback Single Page Application (SPA) React ---
+  RewriteRule ^ index.html [L]
 </IfModule>
 
-# --- Cache aset statis (aset Vite punya hash unik) ---
+# 9. HTTP Security Headers (Defense-in-Depth pada Web Server)
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+# 10. Cache Aset Statis (Aset Vite memiliki hash unik)
 <IfModule mod_expires.c>
-ExpiresActive On
-ExpiresByType image/webp "access plus 1 year"
-ExpiresByType image/jpeg "access plus 1 year"
-ExpiresByType image/png "access plus 1 year"
-ExpiresByType image/svg+xml "access plus 1 year"
-ExpiresByType text/css "access plus 1 year"
-ExpiresByType application/javascript "access plus 1 year"
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
 </IfModule>
-# --- 1. Jangan ganggu request ke API Node.js (Passenger) ---
-# --- 2. Abaikan file/folder yang benar-benar ada ---
-# --- 3. URL pendek untuk gambar upload dari backend ---
-# --- 4. Selain itu, arahkan ke React (SPA) ---
