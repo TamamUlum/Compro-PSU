@@ -3,14 +3,29 @@ const cors = require("cors");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const mysql = require("mysql2/promise");
-require("dotenv").config();
+let mysql;
+try {
+  mysql = require("mysql2/promise");
+} catch {
+  mysql = null;
+}
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
+app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT) || 5000;
 
-const JWT_SECRET =
-  process.env.JWT_SECRET || "psu_compro_super_secret_jwt_key_2026_x9A8b7C6d5E4";
+// Validasi fail-closed JWT_SECRET: Harus disetel di .env dan memiliki panjang minimal 32 karakter
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || typeof JWT_SECRET !== "string" || JWT_SECRET.trim().length < 32) {
+  console.error("====================================================================");
+  console.error("[FATAL SECURITY CONFIGURATION ERROR] JWT_SECRET is missing or insecure (< 32 chars).");
+  console.error("Server dimatikan secara aman (fail-closed) untuk mencegah pemalsuan token sesi.");
+  console.error("Silakan setel variabel JWT_SECRET yang aman di file .env Anda.");
+  console.error("====================================================================");
+  process.exit(1);
+}
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
 
 app.use(cors());
@@ -20,7 +35,15 @@ app.use(express.json({ limit: "25mb" }));
 const publicNewsDir = path.join(__dirname, "..", "company-profile", "public", "news");
 const distNewsDir = path.join(__dirname, "..", "company-profile", "dist", "news");
 fs.mkdirSync(publicNewsDir, { recursive: true });
-app.use("/news", express.static(publicNewsDir));
+app.use(
+  "/news",
+  (req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Content-Disposition", "inline");
+    next();
+  },
+  express.static(publicNewsDir)
+);
 
 const dbConfig = {
   host: process.env.DB_HOST || "127.0.0.1",
@@ -539,6 +562,238 @@ function verifyPassword(plainPassword, storedHash) {
   return String(plainPassword) === storedHash;
 }
 
+function validatePasswordPolicy(password) {
+  if (typeof password !== "string" || password.length < 8) {
+    return "Kata sandi minimal 8 karakter.";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Kata sandi harus mengandung minimal 1 huruf kapital (A-Z).";
+  }
+  if (!/[a-z]/.test(password)) {
+    return "Kata sandi harus mengandung minimal 1 huruf kecil (a-z).";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "Kata sandi harus mengandung minimal 1 angka (0-9).";
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return "Kata sandi harus mengandung minimal 1 simbol atau karakter khusus.";
+  }
+  return null;
+}
+
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(String(email || "").trim());
+}
+
+// ============================================================================
+// SISTEM RATE LIMITING CERDAS & ANDAL (TANPA DEPENDENCY EKSTERNAL)
+// ============================================================================
+function getClientIp(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    return forwarded.split(",")[0].trim();
+  }
+  return req.socket?.remoteAddress || req.ip || "127.0.0.1";
+}
+
+const loginFailuresMap = new Map();
+const generalRateLimitMap = new Map();
+const uploadRateLimitMap = new Map();
+
+// Pembersihan berkala memori rate limit setiap 5 menit
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of loginFailuresMap.entries()) {
+    if (now > v.resetAt) loginFailuresMap.delete(k);
+  }
+  for (const [k, v] of generalRateLimitMap.entries()) {
+    if (now > v.resetAt) generalRateLimitMap.delete(k);
+  }
+  for (const [k, v] of uploadRateLimitMap.entries()) {
+    if (now > v.resetAt) uploadRateLimitMap.delete(k);
+  }
+}, 5 * 60 * 1000).unref();
+
+function authRateLimiter(req, res, next) {
+  const clientIp = getClientIp(req);
+  const username = String(req.body?.username || "").trim().toLowerCase();
+  const key = `auth_${clientIp}_${username || "anon"}`;
+  const now = Date.now();
+  const record = loginFailuresMap.get(key);
+
+  if (record && record.failures >= 5 && now < record.resetAt) {
+    const retryAfterSeconds = Math.ceil((record.resetAt - now) / 1000);
+    res.setHeader("Retry-After", retryAfterSeconds);
+    res.setHeader("X-RateLimit-Limit", 5);
+    res.setHeader("X-RateLimit-Remaining", 0);
+    res.setHeader("X-RateLimit-Reset", Math.ceil(record.resetAt / 1000));
+    return res.status(429).json({
+      success: false,
+      rateLimited: true,
+      message: `Terlalu banyak percobaan login gagal untuk akun ini. Silakan coba kembali dalam ${Math.ceil(retryAfterSeconds / 60)} menit.`,
+      retryAfterSeconds,
+    });
+  }
+
+  // Hook res.on("finish") untuk menghitung kegagalan secara akurat
+  res.on("finish", () => {
+    // Login berhasil (HTTP 200) -> Reset kegagalan
+    if (res.statusCode === 200) {
+      loginFailuresMap.delete(key);
+      return;
+    }
+    // Login gagal (HTTP 401, 400) -> Tambah penghitung kegagalan
+    if (res.statusCode === 401 || res.statusCode === 400) {
+      const currentNow = Date.now();
+      const state = loginFailuresMap.get(key) || { failures: 0, resetAt: currentNow + 15 * 60 * 1000 };
+      if (currentNow >= state.resetAt) {
+        state.failures = 1;
+        state.resetAt = currentNow + 15 * 60 * 1000;
+      } else {
+        state.failures += 1;
+      }
+      loginFailuresMap.set(key, state);
+    }
+  });
+
+  next();
+}
+
+function createSlidingWindowLimiter(windowMs, maxRequests, message, map) {
+  return (req, res, next) => {
+    const ip = getClientIp(req);
+    const now = Date.now();
+    let entry = map.get(ip);
+    if (!entry || now > entry.resetAt) {
+      entry = { count: 1, resetAt: now + windowMs };
+      map.set(ip, entry);
+    } else {
+      entry.count += 1;
+    }
+
+    const remaining = Math.max(0, maxRequests - entry.count);
+    res.setHeader("X-RateLimit-Limit", maxRequests);
+    res.setHeader("X-RateLimit-Remaining", remaining);
+    res.setHeader("X-RateLimit-Reset", Math.ceil(entry.resetAt / 1000));
+
+    if (entry.count > maxRequests) {
+      const retryAfterSeconds = Math.ceil((entry.resetAt - now) / 1000);
+      res.setHeader("Retry-After", retryAfterSeconds);
+      return res.status(429).json({
+        success: false,
+        rateLimited: true,
+        message: message || "Batas frekuensi permintaan terlampaui. Silakan coba sesaat lagi.",
+      });
+    }
+    next();
+  };
+}
+
+const generalApiLimiter = createSlidingWindowLimiter(
+  60 * 1000,
+  120,
+  "Terlalu banyak permintaan API publik. Silakan tunggu beberapa saat.",
+  generalRateLimitMap
+);
+
+const uploadRateLimiter = (req, res, next) => {
+  const userId = req.adminUser?.sub || getClientIp(req);
+  const key = `upload_${userId}`;
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000;
+  const maxUploads = 30;
+
+  let entry = uploadRateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 1, resetAt: now + windowMs };
+    uploadRateLimitMap.set(key, entry);
+  } else {
+    entry.count += 1;
+  }
+
+  if (entry.count > maxUploads) {
+    return res.status(429).json({
+      success: false,
+      rateLimited: true,
+      message: "Batas frekuensi upload media terlampaui (maksimal 30 foto per 15 menit).",
+    });
+  }
+  next();
+};
+
+// ============================================================================
+// VALIDASI GAMBAR RASTER (MAGIC BYTES & ANTI-POLYGLOT)
+// ============================================================================
+function validateRasterImageBuffer(buf, ext) {
+  if (!Buffer.isBuffer(buf) || buf.length < 16) return false;
+
+  if (ext === "jpg") {
+    const isJpegStart = buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+    let hasEoi = false;
+    const endScanStart = Math.max(0, buf.length - 128);
+    for (let i = endScanStart; i < buf.length - 1; i++) {
+      if (buf[i] === 0xff && buf[i + 1] === 0xd9) {
+        hasEoi = true;
+        break;
+      }
+    }
+    return isJpegStart && hasEoi;
+  }
+
+  if (ext === "png") {
+    const isPngStart =
+      buf[0] === 0x89 &&
+      buf[1] === 0x50 &&
+      buf[2] === 0x4e &&
+      buf[3] === 0x47 &&
+      buf[4] === 0x0d &&
+      buf[5] === 0x0a &&
+      buf[6] === 0x1a &&
+      buf[7] === 0x0a;
+    const endOffset = buf.length - 12;
+    let hasIend = false;
+    if (endOffset > 0) {
+      const tail = buf.toString("ascii", endOffset);
+      hasIend = tail.includes("IEND");
+    }
+    return isPngStart && hasIend;
+  }
+
+  if (ext === "webp") {
+    const isRiff = buf.toString("ascii", 0, 4) === "RIFF";
+    const isWebp = buf.toString("ascii", 8, 12) === "WEBP";
+    const chunkHeader = buf.toString("ascii", 12, 16);
+    const isVp8 = chunkHeader === "VP8 " || chunkHeader === "VP8L" || chunkHeader === "VP8X";
+    return isRiff && isWebp && isVp8;
+  }
+
+  return false;
+}
+
+function hasDangerousScriptSignature(buf) {
+  if (!Buffer.isBuffer(buf)) return true;
+  const head = buf.subarray(0, Math.min(buf.length, 2048)).toString("binary").toLowerCase();
+  const tail = buf.subarray(Math.max(0, buf.length - 2048)).toString("binary").toLowerCase();
+  const combined = head + " " + tail;
+
+  const dangerousPatterns = [
+    "<script",
+    "</script",
+    "<?php",
+    "<?= ",
+    "eval(",
+    "base64_decode",
+    "<svg",
+    "<!entity",
+    "javascript:",
+    "onload=",
+    "onerror=",
+  ];
+
+  return dangerousPatterns.some((pattern) => combined.includes(pattern));
+}
+
 function base64UrlEncode(input) {
   const buf = Buffer.isBuffer(input) ? input : Buffer.from(String(input), "utf8");
   return buf
@@ -643,36 +898,58 @@ function requireAdminAuth(req, res, next) {
 }
 
 // ============================================================================
+// ROLE-BASED ACCESS CONTROL (RBAC) AUTHORIZATION MIDDLEWARE
+// ============================================================================
+function requireRole(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.adminUser) {
+      return res.status(401).json({
+        success: false,
+        unauthorized: true,
+        message: "Autentikasi diperlukan. Silakan login terlebih dahulu.",
+      });
+    }
+    const currentRole = req.adminUser.role || "Tidak terdefinisi";
+    if (!allowedRoles.includes(currentRole)) {
+      return res.status(403).json({
+        success: false,
+        forbidden: true,
+        message: `Akses ditolak. Operasi ini membutuhkan hak akses (${allowedRoles.join(" atau ")}). Peran Anda saat ini: ${currentRole}.`,
+      });
+    }
+    return next();
+  };
+}
+
+// ============================================================================
 // FALLBACK IN-MEMORY DATA (JIKA MYSQL BELUM AKTIF SAAT PENGEMBANGAN)
 // ============================================================================
 let pool;
 let dbConnected = false;
 
+const fallbackAdminFile = path.join(__dirname, ".admin-fallback.json");
+function loadFallbackUsers() {
+  try {
+    if (fs.existsSync(fallbackAdminFile)) {
+      const data = JSON.parse(fs.readFileSync(fallbackAdminFile, "utf8"));
+      if (Array.isArray(data)) return data;
+    }
+  } catch {
+    // Ignore read error
+  }
+  return [];
+}
+
+function saveFallbackUsers(users) {
+  try {
+    fs.writeFileSync(fallbackAdminFile, JSON.stringify(users, null, 2), "utf8");
+  } catch {
+    // Ignore write error
+  }
+}
+
 const fallbackStore = {
-  users: [
-    {
-      id: 1,
-      username: "admin",
-      email: "admin@penilaistandaruji.com",
-      password_hash: hashPassword("AdminPSU2026!"),
-      full_name: "Administrator Utama PSU",
-      role: "Super Admin",
-      is_active: 1,
-      last_login: null,
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      username: "redaksi",
-      email: "redaksi@penilaistandaruji.com",
-      password_hash: hashPassword("RedaksiPSU2026!"),
-      full_name: "Tim Redaksi & Humas PSU",
-      role: "Editor",
-      is_active: 1,
-      last_login: null,
-      created_at: new Date().toISOString(),
-    },
-  ],
+  users: loadFallbackUsers(),
   articles: INITIAL_ARTICLES.map((art, index) => ({
     id: index + 1,
     ...art,
@@ -863,6 +1140,15 @@ async function syncPhysicalNewsFolderToGallery() {
 // INISIALISASI DATABASE & MIGRASI OTOMATIS
 // ============================================================================
 async function initDatabase() {
+  if (!mysql) {
+    dbConnected = false;
+    console.warn("==========================================");
+    console.warn("PERINGATAN: Modul mysql2 tidak ditemukan pada environment.");
+    console.warn("Server tetap berjalan dengan Mode Fallback Memori Lokal.");
+    console.warn("==========================================");
+    await syncPhysicalNewsFolderToGallery();
+    return;
+  }
   try {
     const connection = await mysql.createConnection({
       host: dbConfig.host,
@@ -1067,25 +1353,14 @@ async function initDatabase() {
       ('PT. Mitra Logistik Terpadu | Surabaya', 'Sistem Manajemen Mutu', 'SNI ISO 9001:2015', 'PSU-LSSM-2024-IJKL', '09 Feb 2024', '08 Feb 2027', 'Dicabut')
     `);
 
-    // Seed akun admin default
+    // Pengecekan akun admin (tanpa seed password default statis)
     const [existingAdmins] = await pool.query("SELECT COUNT(*) AS cnt FROM admin_users");
     if (existingAdmins[0].cnt === 0) {
-      await pool.execute(
-        `INSERT INTO admin_users (username, email, password_hash, full_name, role, is_active)
-         VALUES (?, ?, ?, ?, ?, 1), (?, ?, ?, ?, ?, 1)`,
-        [
-          "admin",
-          "admin@penilaistandaruji.com",
-          hashPassword("AdminPSU2026!"),
-          "Administrator Utama PSU",
-          "Super Admin",
-          "redaksi",
-          "redaksi@penilaistandaruji.com",
-          hashPassword("RedaksiPSU2026!"),
-          "Tim Redaksi & Humas PSU",
-          "Editor",
-        ]
-      );
+      console.warn("====================================================================");
+      console.warn("[KEAMANAN] Tidak ada akun administrator yang terdaftar di database.");
+      console.warn("Gunakan CLI provisioning untuk membuat akun Super Admin pertama:");
+      console.warn("  node backend/scripts/create-admin.js");
+      console.warn("====================================================================");
     }
 
     // Seed penulis artikel
@@ -1180,7 +1455,7 @@ app.get("/", (req, res) => {
 // ============================================================================
 // ENDPOINT AUTENTIKASI ADMIN & MANAJEMEN SESI JWT
 // ============================================================================
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", authRateLimiter, async (req, res) => {
   try {
     const { username, password } = req.body || {};
     const identifier = String(username || "").trim();
@@ -1213,6 +1488,10 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     if (!userRecord) {
+      const freshFallbackUsers = loadFallbackUsers();
+      if (freshFallbackUsers.length > 0) {
+        fallbackStore.users = freshFallbackUsers;
+      }
       userRecord =
         fallbackStore.users.find(
           (u) =>
@@ -1223,6 +1502,12 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     if (!userRecord || !verifyPassword(rawPassword, userRecord.password_hash)) {
+      await logAdminActivity(
+        identifier || "unknown",
+        "FAILED_LOGIN",
+        "Percobaan Login Ditolak",
+        `Login gagal untuk identitas '${identifier}' dari IP ${getClientIp(req)}`
+      );
       return res.status(401).json({
         success: false,
         message: "Username atau password yang Anda masukkan salah.",
@@ -1340,16 +1625,25 @@ app.put("/api/auth/profile", requireAdminAuth, async (req, res) => {
       });
     }
 
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    if (!validateEmail(cleanEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Format email tidak valid.",
+      });
+    }
+
     if (dbConnected && pool) {
       await pool.execute(
         "UPDATE admin_users SET full_name = ?, email = ? WHERE id = ? OR username = ?",
-        [full_name.trim(), email.trim(), sub || -1, username]
+        [full_name.trim(), cleanEmail, sub || -1, username]
       );
     } else {
       const target = fallbackStore.users.find((u) => u.id === sub || u.username === username);
       if (target) {
         target.full_name = full_name.trim();
-        target.email = email.trim();
+        target.email = cleanEmail;
+        saveFallbackUsers(fallbackStore.users);
       }
     }
 
@@ -1380,7 +1674,7 @@ app.put("/api/auth/profile", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.put("/api/auth/password", requireAdminAuth, async (req, res) => {
+app.put("/api/auth/password", requireAdminAuth, authRateLimiter, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body || {};
     const { sub, username } = req.adminUser;
@@ -1392,10 +1686,11 @@ app.put("/api/auth/password", requireAdminAuth, async (req, res) => {
       });
     }
 
-    if (String(newPassword).length < 6) {
+    const passError = validatePasswordPolicy(newPassword);
+    if (passError) {
       return res.status(400).json({
         success: false,
-        message: "Password baru minimal 6 karakter.",
+        message: `Kebijakan Keamanan Password: ${passError}`,
       });
     }
 
@@ -1425,6 +1720,7 @@ app.put("/api/auth/password", requireAdminAuth, async (req, res) => {
       ]);
     } else {
       userRecord.password_hash = newHash;
+      saveFallbackUsers(fallbackStore.users);
     }
 
     await logAdminActivity(
@@ -1447,7 +1743,7 @@ app.put("/api/auth/password", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.get("/api/admin/users", requireAdminAuth, async (req, res) => {
+app.get("/api/admin/users", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
   try {
     if (dbConnected && pool) {
       const [rows] = await pool.query(
@@ -1468,13 +1764,37 @@ app.get("/api/admin/users", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.post("/api/admin/users", requireAdminAuth, async (req, res) => {
+app.post("/api/admin/users", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
   try {
     const { username, email, password, full_name, role } = req.body || {};
     if (!username || !email || !password || !full_name) {
       return res.status(400).json({
         success: false,
         message: "Username, email, nama lengkap, dan password wajib diisi.",
+      });
+    }
+
+    const cleanUsername = String(username).trim();
+    if (cleanUsername.length < 3 || !/^[a-zA-Z0-9_.-]+$/.test(cleanUsername)) {
+      return res.status(400).json({
+        success: false,
+        message: "Username minimal 3 karakter dan hanya boleh berisi huruf, angka, titik, atau garis bawah.",
+      });
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase();
+    if (!validateEmail(cleanEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Format email tidak valid.",
+      });
+    }
+
+    const passError = validatePasswordPolicy(password);
+    if (passError) {
+      return res.status(400).json({
+        success: false,
+        message: `Kebijakan Keamanan Password: ${passError}`,
       });
     }
 
@@ -1485,21 +1805,21 @@ app.post("/api/admin/users", requireAdminAuth, async (req, res) => {
       const [result] = await pool.execute(
         `INSERT INTO admin_users (username, email, password_hash, full_name, role, is_active)
          VALUES (?, ?, ?, ?, ?, 1)`,
-        [username.trim(), email.trim(), passHash, full_name.trim(), cleanRole]
+        [cleanUsername, cleanEmail, passHash, full_name.trim(), cleanRole]
       );
       await logAdminActivity(
         req.adminUser.username,
         "CREATE_ADMIN",
-        username.trim(),
-        `Menambahkan akun ${cleanRole} baru (${email.trim()})`
+        cleanUsername,
+        `Menambahkan akun ${cleanRole} baru (${cleanEmail})`
       );
       return res.status(201).json({
         success: true,
         message: "Akun admin baru berhasil ditambahkan.",
         data: {
           id: result.insertId,
-          username: username.trim(),
-          email: email.trim(),
+          username: cleanUsername,
+          email: cleanEmail,
           full_name: full_name.trim(),
           role: cleanRole,
           is_active: 1,
@@ -1509,8 +1829,8 @@ app.post("/api/admin/users", requireAdminAuth, async (req, res) => {
 
     const newItem = {
       id: Date.now(),
-      username: username.trim(),
-      email: email.trim(),
+      username: cleanUsername,
+      email: cleanEmail,
       password_hash: passHash,
       full_name: full_name.trim(),
       role: cleanRole,
@@ -1519,6 +1839,7 @@ app.post("/api/admin/users", requireAdminAuth, async (req, res) => {
       created_at: new Date().toISOString(),
     };
     fallbackStore.users.push(newItem);
+    saveFallbackUsers(fallbackStore.users);
     const { password_hash, ...safeItem } = newItem;
     return res.status(201).json({
       success: true,
@@ -1562,7 +1883,7 @@ app.get("/api/authors", async (req, res) => {
   });
 });
 
-app.post("/api/authors", requireAdminAuth, async (req, res) => {
+app.post("/api/authors", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
   try {
     const { name, role_title, division } = req.body || {};
     if (!name || !String(name).trim()) {
@@ -1618,7 +1939,7 @@ app.post("/api/authors", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.delete("/api/authors/:id", requireAdminAuth, async (req, res) => {
+app.delete("/api/authors/:id", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
   const { id } = req.params;
   try {
     if (dbConnected && pool) {
@@ -1639,7 +1960,7 @@ app.delete("/api/authors/:id", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.post("/api/admin/tags/rename", requireAdminAuth, async (req, res) => {
+app.post("/api/admin/tags/rename", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
   try {
     const { oldTag, newTag } = req.body || {};
     const cleanOld = String(oldTag || "").trim();
@@ -1703,7 +2024,7 @@ app.post("/api/admin/tags/rename", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.post("/api/admin/tags/delete", requireAdminAuth, async (req, res) => {
+app.post("/api/admin/tags/delete", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
   try {
     const { tag } = req.body || {};
     const cleanTag = String(tag || "").trim();
@@ -1862,13 +2183,14 @@ app.get("/api/galeri", async (req, res) => {
   }
 });
 
-app.post("/api/upload-gambar", requireAdminAuth, async (req, res) => {
+app.post("/api/upload-gambar", requireAdminAuth, uploadRateLimiter, async (req, res) => {
   try {
-    const { filename, dataUrl, title, alt_text, category } = req.body || {};
-    if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) {
+    const { filename, title, alt_text, category } = req.body || {};
+    const dataUrl = req.body?.dataUrl || req.body?.image;
+    if (!dataUrl || typeof dataUrl !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Format gambar tidak valid.",
+        message: "Data gambar base64 wajib diunggah.",
       });
     }
 
@@ -1876,36 +2198,94 @@ app.post("/api/upload-gambar", requireAdminAuth, async (req, res) => {
     if (!matches) {
       return res.status(400).json({
         success: false,
-        message: "Data base64 gambar tidak valid.",
+        message: "Format data URL base64 gambar tidak valid.",
       });
     }
 
-    let ext = matches[1].toLowerCase();
-    if (ext === "jpeg") ext = "jpg";
-    if (ext === "svg+xml") ext = "svg";
+    const rawMimeSubtype = matches[1].toLowerCase();
     const base64Data = matches[2];
+
+    // Tolak keras format SVG, HTML, XML, atau skrip executable
+    if (
+      rawMimeSubtype.includes("svg") ||
+      rawMimeSubtype.includes("xml") ||
+      rawMimeSubtype.includes("html") ||
+      rawMimeSubtype.includes("php")
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Format SVG atau dokumen non-raster ditolak demi keamanan server. Silakan gunakan JPEG, PNG, atau WebP.",
+      });
+    }
+
+    const ALLOWED_RASTER_MAP = {
+      jpeg: "jpg",
+      jpg: "jpg",
+      png: "png",
+      webp: "webp",
+    };
+
+    const ext = ALLOWED_RASTER_MAP[rawMimeSubtype];
+    if (!ext) {
+      return res.status(400).json({
+        success: false,
+        message: "Hanya format gambar raster yang diizinkan (JPG, JPEG, PNG, WEBP).",
+      });
+    }
+
     const buffer = Buffer.from(base64Data, "base64");
 
-    const rawBaseName = path.basename(filename || "berita", path.extname(filename || ""));
-    const safeBase = slugifyTitle(rawBaseName) || "berita";
-    const finalName = `${safeBase}-${Date.now()}.${ext}`;
+    // Validasi ukuran buffer biner (minimal 64 byte, maksimal 8 MB)
+    if (buffer.length < 64) {
+      return res.status(400).json({
+        success: false,
+        message: "File gambar terkorupsi atau terlalu kecil.",
+      });
+    }
+
+    if (buffer.length > 8 * 1024 * 1024) {
+      return res.status(413).json({
+        success: false,
+        message: "Ukuran file gambar melampaui batas maksimal 8 MB.",
+      });
+    }
+
+    // Validasi Tanda Tangan Byte Biner (Magic Bytes)
+    if (!validateRasterImageBuffer(buffer, ext)) {
+      return res.status(400).json({
+        success: false,
+        message: `Header biner file tidak cocok dengan format ${ext.toUpperCase()}. Pastikan file gambar Anda asli dan tidak rusak.`,
+      });
+    }
+
+    // Pemeriksaan Anti-Polyglot
+    if (hasDangerousScriptSignature(buffer)) {
+      return res.status(400).json({
+        success: false,
+        message: "File gambar terdeteksi mengandung konten skrip yang tidak diizinkan.",
+      });
+    }
+
+    // Gunakan UUID v4 acak dari server untuk nama file (nama dari pengguna tidak digunakan pada path disk)
+    const randomUuid = crypto.randomUUID();
+    const finalName = `${randomUuid}.${ext}`;
 
     fs.mkdirSync(publicNewsDir, { recursive: true });
     fs.writeFileSync(path.join(publicNewsDir, finalName), buffer);
 
-    // Salin juga ke dist/news jika folder dist ada
-    try {
-      if (fs.existsSync(path.join(__dirname, "..", "company-profile", "dist"))) {
+    if (fs.existsSync(distNewsDir)) {
+      try {
         fs.mkdirSync(distNewsDir, { recursive: true });
         fs.writeFileSync(path.join(distNewsDir, finalName), buffer);
+      } catch {
+        // Abaikan kegagalan salin dist
       }
-    } catch {
-      // Ignore dist copy error
     }
 
     const imageUrl = `/news/${finalName}`;
+    const rawBaseName = path.basename(filename || "berita", path.extname(filename || ""));
     const cleanTitle =
-      (title && String(title).trim()) ||
+      (title && String(title).trim().slice(0, 200)) ||
       rawBaseName.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
     const mediaItem = await ensureGalleryEntry({
@@ -1928,7 +2308,7 @@ app.post("/api/upload-gambar", requireAdminAuth, async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Foto berhasil diunggah dan disimpan ke Galeri Foto.",
+      message: "Foto berhasil diverifikasi dan disimpan ke Galeri Foto.",
       image_url: imageUrl,
       media: mediaItem,
     });
@@ -1936,7 +2316,7 @@ app.post("/api/upload-gambar", requireAdminAuth, async (req, res) => {
     console.error("Upload gambar error:", error.message);
     return res.status(500).json({
       success: false,
-      message: "Gagal menyimpan file gambar.",
+      message: "Gagal memproses file gambar.",
       error: error.message,
     });
   }
@@ -1992,7 +2372,7 @@ app.put("/api/galeri/:id", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.delete("/api/galeri/:id", requireAdminAuth, async (req, res) => {
+app.delete("/api/galeri/:id", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
   const { id } = req.params;
   try {
     let targetItem = null;
@@ -2190,7 +2570,7 @@ app.get("/api/admin/logs", requireAdminAuth, async (req, res) => {
 // ============================================================================
 // ENDPOINT CRUD ARTIKEL (PUBLIK & ADMIN TERPROTEKSI JWT)
 // ============================================================================
-app.get("/api/artikel", async (req, res) => {
+app.get("/api/artikel", generalApiLimiter, async (req, res) => {
   const year = (req.query.year || "All").trim();
   const tag = (req.query.tag || "All").trim();
   const statusFilter = (req.query.status || "All").trim();
@@ -2363,11 +2743,29 @@ app.post("/api/artikel", requireAdminAuth, async (req, res) => {
     const cleanCategory = ["News", "Article", "Press Release"].includes(category)
       ? category
       : "News";
-    const cleanStatus = status === "Draft" ? "Draft" : "Published";
-    const cleanAuthor = author || AUTHOR_OPTIONS[0];
+
+    // Penegakan Hak Akses & Ownership RBAC:
+    const userRole = req.adminUser?.role || "Author";
+    const userDisplayName = req.adminUser?.full_name || req.adminUser?.username || "Admin PSU";
+
+    let cleanStatus = "Draft";
+    let cleanFeatured = 0;
+    let cleanAuthor = userDisplayName;
+
+    if (userRole === "Super Admin" || userRole === "Editor") {
+      cleanStatus = status === "Draft" ? "Draft" : "Published";
+      cleanFeatured = is_featured ? 1 : 0;
+      cleanAuthor = (author && String(author).trim()) || userDisplayName;
+    } else {
+      // Role Author: status SELALU 'Draft' (membutuhkan persetujuan Editor/Super Admin),
+      // nama penulis dipaksa sesuai identitas akun sendiri (mencegah impersonation), dan tidak bisa featured
+      cleanStatus = "Draft";
+      cleanFeatured = 0;
+      cleanAuthor = userDisplayName;
+    }
+
     const cleanDate = published_at || new Date().toISOString().slice(0, 10);
     const cleanImage = image_url || "/Logo_PSU_banner1.webp";
-    const cleanFeatured = is_featured ? 1 : 0;
     const cleanTags =
       Array.isArray(tags) && tags.length > 0 ? tags : [cleanCategory, "PT Penilai Standar Uji"];
     const cleanExcerptId =
@@ -2505,6 +2903,26 @@ app.put("/api/artikel/:identifier", requireAdminAuth, async (req, res) => {
       });
     }
 
+    // Validasi Kepemilikan & Hak Akses RBAC
+    const userRole = req.adminUser?.role || "Author";
+    const userDisplayName = req.adminUser?.full_name || req.adminUser?.username || "";
+    const username = req.adminUser?.username || "";
+
+    if (userRole === "Author") {
+      const isOwner =
+        current.author &&
+        (current.author.toLowerCase() === userDisplayName.toLowerCase() ||
+          current.author.toLowerCase() === username.toLowerCase());
+
+      if (!isOwner) {
+        return res.status(403).json({
+          success: false,
+          forbidden: true,
+          message: "Akses ditolak. Sebagai Author, Anda hanya diizinkan mengedit artikel yang Anda buat sendiri.",
+        });
+      }
+    }
+
     const {
       title_id,
       title_en,
@@ -2530,13 +2948,26 @@ app.put("/api/artikel/:identifier", requireAdminAuth, async (req, res) => {
       String(finalContentId).replace(/\s+/g, " ").trim().slice(0, 190) + "...";
     const finalExcerptEn = excerpt_en || finalExcerptId;
     const finalImage = image_url || current.image_url;
-    const finalAuthor = author || current.author || AUTHOR_OPTIONS[0];
+
+    let finalAuthor = current.author;
+    let finalStatus = current.status;
+    let finalFeatured = Number(current.is_featured) || 0;
+
+    if (userRole === "Super Admin" || userRole === "Editor") {
+      finalAuthor = (author && String(author).trim()) || current.author || AUTHOR_OPTIONS[0];
+      finalStatus = status === "Draft" ? "Draft" : "Published";
+      finalFeatured =
+        typeof is_featured !== "undefined" ? (is_featured ? 1 : 0) : Number(current.is_featured) || 0;
+    } else {
+      // Author role: status tetap Draft (perlu disetujui Editor), author tidak dapat diubah
+      finalAuthor = current.author;
+      finalStatus = "Draft";
+      finalFeatured = 0;
+    }
+
     const finalCategory = ["News", "Article", "Press Release"].includes(category)
       ? category
       : current.category;
-    const finalStatus = status === "Draft" ? "Draft" : "Published";
-    const finalFeatured =
-      typeof is_featured !== "undefined" ? (is_featured ? 1 : 0) : Number(current.is_featured) || 0;
     const finalDate =
       published_at ||
       (current.published_at instanceof Date
@@ -2636,7 +3067,7 @@ app.put("/api/artikel/:identifier", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.patch("/api/artikel/:identifier/status", requireAdminAuth, async (req, res) => {
+app.patch("/api/artikel/:identifier/status", requireAdminAuth, requireRole("Super Admin", "Editor"), async (req, res) => {
   const { identifier } = req.params;
   const { status, is_featured } = req.body || {};
 
@@ -2726,6 +3157,13 @@ app.post("/api/artikel/bulk", requireAdminAuth, async (req, res) => {
     const placeholders = cleanIds.map(() => "?").join(",");
 
     if (action === "delete") {
+      if (req.adminUser?.role !== "Super Admin") {
+        return res.status(403).json({
+          success: false,
+          forbidden: true,
+          message: "Akses ditolak. Hanya Super Admin yang berwenang melakukan penghapusan artikel secara masal.",
+        });
+      }
       if (dbConnected && pool) {
         await pool.execute(`DELETE FROM artikel WHERE id IN (${placeholders})`, cleanIds);
       } else {
@@ -2746,6 +3184,13 @@ app.post("/api/artikel/bulk", requireAdminAuth, async (req, res) => {
     }
 
     if (action === "publish" || action === "draft") {
+      if (req.adminUser?.role !== "Super Admin" && req.adminUser?.role !== "Editor") {
+        return res.status(403).json({
+          success: false,
+          forbidden: true,
+          message: "Akses ditolak. Hanya Super Admin dan Editor yang berwenang mengubah status publikasi artikel secara masal.",
+        });
+      }
       const targetStatus = action === "publish" ? "Published" : "Draft";
       if (dbConnected && pool) {
         await pool.execute(
@@ -2782,7 +3227,7 @@ app.post("/api/artikel/bulk", requireAdminAuth, async (req, res) => {
   }
 });
 
-app.delete("/api/artikel/:identifier", requireAdminAuth, async (req, res) => {
+app.delete("/api/artikel/:identifier", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
   const { identifier } = req.params;
   try {
     let deletedTitle = identifier;
@@ -2842,7 +3287,7 @@ app.delete("/api/artikel/:identifier", requireAdminAuth, async (req, res) => {
 // ============================================================================
 // ENDPOINT PENCARIAN SERTIFIKAT PELANGGAN
 // ============================================================================
-app.get("/api/sertifikat/:submenu", async (req, res) => {
+app.get("/api/sertifikat/:submenu", generalApiLimiter, async (req, res) => {
   const { submenu } = req.params;
   const noSertifikat = (req.query.no_sertifikat || "").trim();
 
@@ -2905,10 +3350,14 @@ app.get("/api/sertifikat/:submenu", async (req, res) => {
   }
 });
 
-initDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(
-      `Server API Tracking Sertifikat & Dashboard Artikel berjalan di http://127.0.0.1:${PORT}`
-    );
+if (require.main === module) {
+  initDatabase().then(() => {
+    app.listen(PORT, () => {
+      console.log(
+        `Server API Tracking Sertifikat & Dashboard Artikel berjalan di http://127.0.0.1:${PORT}`
+      );
+    });
   });
-});
+}
+
+module.exports = { app, initDatabase };

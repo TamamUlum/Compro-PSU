@@ -72,6 +72,8 @@ web_modules/
 .env.*
 !.env.example
 .agents
+.admin-fallback.json
+backend/.admin-fallback.json
 
 # Archives and backup files
 *.zip

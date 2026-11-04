@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node ../start_all.js",
     "server": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "create-admin": "node scripts/create-admin.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
