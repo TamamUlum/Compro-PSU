@@ -1,6 +1,7 @@
 import "./Profile.css";
 import { useEffect } from "react";
 import PageHeader from "../components/PageHeader";
+import SeoHead from "../components/SeoHead";
 import { useLanguage } from "../context/useLanguage";
 
 const ABOUT_IMAGE = "/Logo_PSU_banner1.webp";
@@ -68,6 +69,19 @@ export default function Profile() {
 
   return (
     <>
+      <SeoHead
+        title={lang === "en" ? "Company Profile" : "Profil Perusahaan"}
+        description={
+          lang === "en"
+            ? "Learn about PT Penilai Standar Uji (PSU), its accreditation milestones by KAN, vision, mission, and commitment to industrial conformity assessment."
+            : "Profil lengkap PT Penilai Standar Uji (PSU), sejarah akreditasi KAN sejak 2016, visi, misi, dan komitmen penjaminan mutu produk industri nasional."
+        }
+        canonical="/about/profile"
+        type="about"
+        breadcrumbs={[{ label: lang === "en" ? "About Us" : "Tentang Kami", href: "/about/profile" }]}
+        primaryImage="/Logo_PSU_banner1.webp"
+        lang={lang}
+      />
       <PageHeader
         title="Tentang Kami"
         breadcrumbs={[{ label: "Tentang Kami", href: "/about/profile" }]}

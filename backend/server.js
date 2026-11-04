@@ -2178,6 +2178,7 @@ async function initDatabase() {
     }
 
     await syncPhysicalNewsFolderToGallery();
+    await syncSitemapFiles().catch((e) => console.error("Sitemap startup sync error:", e.message));
 
     console.log("==========================================");
     console.log("Koneksi MySQL Berhasil! Database:", dbConfig.database);
@@ -2196,6 +2197,7 @@ async function initDatabase() {
     console.error("Server tetap berjalan dengan Mode Fallback Memori Lokal.");
     console.error("==========================================");
     await syncPhysicalNewsFolderToGallery();
+    await syncSitemapFiles().catch((e) => console.error("Sitemap startup sync error:", e.message));
   }
 }
 
@@ -3114,6 +3116,147 @@ async function getArticlesListRaw() {
   }));
 }
 
+// ============================================================================
+// AUTOMATIC SITEMAP.XML & ROBOTS.TXT GENERATOR
+// ============================================================================
+const CANONICAL_BASE = "https://penilaistandaruji.com";
+
+const STATIC_SITEMAP_ROUTES = [
+  { loc: "/", priority: "1.0", changefreq: "weekly" },
+  { loc: "/about/profile", priority: "0.8", changefreq: "monthly" },
+  { loc: "/about/struktur-organisasi", priority: "0.7", changefreq: "monthly" },
+  { loc: "/kontak", priority: "0.8", changefreq: "monthly" },
+  { loc: "/pertanian", priority: "0.8", changefreq: "monthly" },
+  { loc: "/tanaman", priority: "0.8", changefreq: "monthly" },
+  { loc: "/pangan", priority: "0.8", changefreq: "monthly" },
+  { loc: "/kimia", priority: "0.8", changefreq: "monthly" },
+  { loc: "/logam", priority: "0.8", changefreq: "monthly" },
+  { loc: "/jasa-lainnya", priority: "0.8", changefreq: "monthly" },
+  { loc: "/client", priority: "0.7", changefreq: "weekly" },
+  { loc: "/client/sertifikasi-produk", priority: "0.7", changefreq: "weekly" },
+  { loc: "/client/pengujian", priority: "0.7", changefreq: "weekly" },
+  { loc: "/client/kalibrasi", priority: "0.7", changefreq: "weekly" },
+  { loc: "/client/sertifikasi-sistem-manajemen", priority: "0.7", changefreq: "weekly" },
+  { loc: "/artikel", priority: "0.9", changefreq: "daily" },
+  // Halaman Informasi Umum Layanan (Landing Pages)
+  { loc: "/lspro", priority: "0.9", changefreq: "weekly" },
+  { loc: "/layanan/sertif-produk", priority: "0.9", changefreq: "weekly" },
+  { loc: "/layanan/penguji", priority: "0.9", changefreq: "weekly" },
+  { loc: "/layanan/kalibrasi", priority: "0.9", changefreq: "weekly" },
+  { loc: "/layanan/sertif-manajemen", priority: "0.9", changefreq: "weekly" },
+  { loc: "/layanan/pelatihan", priority: "0.9", changefreq: "weekly" },
+  // Submenu Layanan
+  { loc: "/layanan/sertif-produk/legalitas", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-produk/ruang-lingkup", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-produk/permohonan-sertifikasi", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-produk/tipe-1b", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-produk/tipe-5", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-produk/penggunaan-sni", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-produk/keluhan-banding", priority: "0.7", changefreq: "monthly" },
+  { loc: "/layanan/sertif-produk/hak-kewajiban-klien", priority: "0.7", changefreq: "monthly" },
+  { loc: "/layanan/sertif-produk/biaya-sertif", priority: "0.7", changefreq: "monthly" },
+  { loc: "/layanan/penguji/legalitas", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/penguji/ruang-lingkup", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/penguji/proses-pengujian", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/penguji/biaya-sertif", priority: "0.7", changefreq: "monthly" },
+  { loc: "/layanan/kalibrasi/legalitas", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/kalibrasi/ruang-lingkup/alat-kesehatan", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/kalibrasi/biaya-sertif", priority: "0.7", changefreq: "monthly" },
+  { loc: "/layanan/sertif-manajemen/legalitas", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-manajemen/ruang-lingkup", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-manajemen/proses-sertifikasi", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/sertif-manajemen/keluhan-banding", priority: "0.7", changefreq: "monthly" },
+  { loc: "/layanan/sertif-manajemen/hak-kewajiban-klien", priority: "0.7", changefreq: "monthly" },
+  { loc: "/layanan/sertif-manajemen/biaya-sertif", priority: "0.7", changefreq: "monthly" },
+  { loc: "/layanan/pelatihan/general-training", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/pelatihan/inhouse-training", priority: "0.8", changefreq: "monthly" },
+  { loc: "/layanan/pelatihan/exhouse-training", priority: "0.8", changefreq: "monthly" },
+];
+
+function generateSitemapXml(articles = []) {
+  const publishedArticles = Array.isArray(articles)
+    ? articles.filter((a) => a.status === "Published")
+    : [];
+
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
+
+  for (const route of STATIC_SITEMAP_ROUTES) {
+    xml += '  <url>\n';
+    xml += `    <loc>${CANONICAL_BASE}${route.loc}</loc>\n`;
+    xml += `    <changefreq>${route.changefreq}</changefreq>\n`;
+    xml += `    <priority>${route.priority}</priority>\n`;
+    xml += '  </url>\n';
+  }
+
+  for (const art of publishedArticles) {
+    const rawDate = art.published_at ? String(art.published_at).split("T")[0] : "2026-04-18";
+    xml += '  <url>\n';
+    xml += `    <loc>${CANONICAL_BASE}/artikel/${encodeURIComponent(art.slug)}</loc>\n`;
+    xml += `    <lastmod>${rawDate}</lastmod>\n`;
+    xml += `    <changefreq>monthly</changefreq>\n`;
+    xml += `    <priority>0.8</priority>\n`;
+    if (art.image_url && !art.image_url.startsWith("data:")) {
+      const imgLoc = art.image_url.startsWith("http")
+        ? art.image_url
+        : `${CANONICAL_BASE}${art.image_url.startsWith("/") ? art.image_url : `/${art.image_url}`}`;
+      const safeTitle = (art.title_id || "Artikel PSU")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      xml += '    <image:image>\n';
+      xml += `      <image:loc>${imgLoc}</image:loc>\n`;
+      xml += `      <image:title>${safeTitle}</image:title>\n`;
+      xml += '    </image:image>\n';
+    }
+    xml += '  </url>\n';
+  }
+
+  xml += '</urlset>\n';
+  return xml;
+}
+
+async function syncSitemapFiles() {
+  try {
+    const articles = await getArticlesListRaw();
+    const xml = generateSitemapXml(articles);
+    const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /admin/\nDisallow: /dashboard-artikel\nDisallow: /dashboard-artikel/\n\nSitemap: ${CANONICAL_BASE}/sitemap.xml\n`;
+
+    const publicDir = path.join(__dirname, "..", "company-profile", "public");
+    const distDir = path.join(__dirname, "..", "company-profile", "dist");
+
+    if (fs.existsSync(publicDir)) {
+      fs.writeFileSync(path.join(publicDir, "sitemap.xml"), xml, "utf8");
+      fs.writeFileSync(path.join(publicDir, "robots.txt"), robotsTxt, "utf8");
+    }
+    if (fs.existsSync(distDir)) {
+      fs.writeFileSync(path.join(distDir, "sitemap.xml"), xml, "utf8");
+      fs.writeFileSync(path.join(distDir, "robots.txt"), robotsTxt, "utf8");
+    }
+  } catch (err) {
+    console.error("[SITEMAP SYNC ERROR]", err.message);
+  }
+}
+
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const articles = await getArticlesListRaw();
+    const xml = generateSitemapXml(articles);
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.status(200).send(xml);
+  } catch (err) {
+    res.status(500).send("Error generating sitemap");
+  }
+});
+
+app.get("/robots.txt", (req, res) => {
+  const robotsTxt = `User-agent: *\\nAllow: /\\nDisallow: /admin\\nDisallow: /admin/\\nDisallow: /dashboard-artikel\\nDisallow: /dashboard-artikel/\\n\\nSitemap: ${CANONICAL_BASE}/sitemap.xml\\n`;
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.status(200).send(robotsTxt);
+});
+
 app.get("/api/galeri", async (req, res) => {
   try {
     await syncPhysicalNewsFolderToGallery();
@@ -3879,6 +4022,8 @@ app.post("/api/artikel", requireAdminAuth, async (req, res) => {
       `Menambahkan ${cleanCategory} baru [${cleanStatus}] oleh ${cleanAuthor}`
     );
 
+    await syncSitemapFiles().catch((e) => console.error("Sitemap sync error:", e.message));
+
     return res.status(201).json({
       success: true,
       message: "Artikel berhasil ditambahkan.",
@@ -4076,6 +4221,8 @@ app.put("/api/artikel/:identifier", requireAdminAuth, async (req, res) => {
       `Memperbarui artikel ID #${current.id} (${finalStatus})`
     );
 
+    await syncSitemapFiles().catch((e) => console.error("Sitemap sync error:", e.message));
+
     return res.json({
       success: true,
       message: "Artikel berhasil diperbarui.",
@@ -4158,6 +4305,8 @@ app.patch("/api/artikel/:identifier/status", requireAdminAuth, requireRole("Supe
       `Mengubah status artikel menjadi ${nextStatus} (Featured: ${nextFeatured ? "Ya" : "Tidak"})`
     );
 
+    await syncSitemapFiles().catch((e) => console.error("Sitemap sync error:", e.message));
+
     return res.json({
       success: true,
       message: `Status artikel diperbarui menjadi ${nextStatus}.`,
@@ -4218,6 +4367,7 @@ app.post("/api/artikel/bulk", requireAdminAuth, async (req, res) => {
         `${cleanIds.length} Artikel`,
         `Menghapus ${cleanIds.length} artikel sekaligus`
       );
+      await syncSitemapFiles().catch((e) => console.error("Sitemap sync error:", e.message));
       return res.json({
         success: true,
         message: `${cleanIds.length} artikel berhasil dihapus.`,
@@ -4249,6 +4399,7 @@ app.post("/api/artikel/bulk", requireAdminAuth, async (req, res) => {
         `${cleanIds.length} Artikel -> ${targetStatus}`,
         `Mengubah status ${cleanIds.length} artikel menjadi ${targetStatus}`
       );
+      await syncSitemapFiles().catch((e) => console.error("Sitemap sync error:", e.message));
       return res.json({
         success: true,
         message: `${cleanIds.length} artikel berhasil diubah menjadi ${targetStatus}.`,
@@ -4310,6 +4461,8 @@ app.delete("/api/artikel/:identifier", requireAdminAuth, requireRole("Super Admi
       deletedTitle,
       `Menghapus artikel secara permanen (${identifier})`
     );
+
+    await syncSitemapFiles().catch((e) => console.error("Sitemap sync error:", e.message));
 
     return res.json({
       success: true,
@@ -4468,4 +4621,8 @@ module.exports = {
   signJwt,
   verifyJwt,
   extractToken,
+  generateSitemapXml,
+  syncSitemapFiles,
+  CANONICAL_BASE,
+  STATIC_SITEMAP_ROUTES,
 };

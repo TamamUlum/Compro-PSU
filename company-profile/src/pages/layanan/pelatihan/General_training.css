@@ -1,48 +1,244 @@
 .service-detail--general-training {
   --service-navy: #0b2a5b;
-  --service-text: #1d2733;
-  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 48px 0 88px;
+  --service-gold: #c5a059;
+  --service-text: #202124;
+  box-sizing: border-box;
+  margin: 40px auto 72px;
+  padding: clamp(24px, 5vw, 48px);
   color: var(--service-text);
   font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  background: #ffffff;
+  border: 1px solid #e7e9ec;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(7, 26, 64, 0.06);
 }
 
-.service-detail--general-training h1 {
-  margin: 0 0 24px;
+.training-sub__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #f1f4f8;
+  padding-bottom: 16px;
+}
+
+.training-sub__heading-icon {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   color: var(--service-navy);
-  font-size: 2rem;
+}
+
+.training-sub__heading h1 {
+  margin: 0;
+  color: var(--service-navy);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 750;
   line-height: 1.25;
 }
 
-.service-detail--general-training p,
-.service-detail--general-training li {
-  max-width: 80ch;
-  font-size: 1.0625rem;
-  line-height: 1.7;
-}
-
-.service-detail--general-training p {
+.training-sub__tagline {
   margin: 0 0 20px;
+  font-size: 1.1rem;
+  font-weight: 650;
+  color: #c5a059;
 }
 
-.service-detail--general-training ul,
-.service-detail--general-training ol {
-  max-width: 80ch;
-  padding-left: 22px;
+.training-sub__content-body p {
+  margin: 0 0 16px;
+  font-size: var(--content-font-size, 1.05rem);
+  line-height: var(--content-line-height, 1.75);
+  color: #334155;
+  text-align: left;
 }
 
-.service-detail--general-training li + li {
-  margin-top: 8px;
+.training-sub__subheading {
+  margin: var(--content-section-gap, 32px) 0 16px;
+  font-size: var(--content-heading-size, 1.25rem);
+  font-weight: var(--content-heading-weight, 700);
+  color: var(--service-navy);
+  border-left: 4px solid var(--service-gold);
+  padding-left: 12px;
+  text-align: left;
 }
 
-@media (max-width: 720px) {
+.training-sub__list {
+  margin: 0 0 24px;
+  padding-left: 1.75rem;
+  list-style: disc outside;
+  color: #334155;
+  font-size: var(--content-font-size, 1.02rem);
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
+}
+
+.training-sub__workflow-steps {
+  margin: 0 0 24px;
+  padding-left: 1.75rem;
+  list-style: decimal outside;
+  color: #334155;
+  font-size: var(--content-font-size, 1.02rem);
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
+}
+
+.training-sub__list li,
+.training-sub__workflow-steps li {
+  margin-bottom: var(--content-list-gap, 10px);
+  text-align: left;
+  padding-left: 0.35rem;
+  line-height: var(--content-line-height, 1.75);
+}
+
+/* Consultation & CTA Box */
+.training-sub__consultation {
+  margin-top: 36px;
+  padding: clamp(24px, 4vw, 36px);
+  background: linear-gradient(135deg, #071a40 0%, #0d285d 100%);
+  border-radius: 14px;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(7, 26, 64, 0.15);
+}
+
+.training-sub__consultation-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.training-sub__consultation-icon {
+  width: 24px;
+  height: 24px;
+  color: #f1c40f;
+  flex-shrink: 0;
+}
+
+.training-sub__consultation-heading h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+  font-weight: 700;
+}
+
+.training-sub__consultation p {
+  margin: 0 0 24px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.training-sub__cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.training-sub__whatsapp-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 26px;
+  background: #25d366;
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+.training-sub__whatsapp-button:hover,
+.training-sub__whatsapp-button:focus-visible {
+  background: #1eb956;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+}
+
+.training-sub__contact-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 24px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 650;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.training-sub__contact-button:hover,
+.training-sub__contact-button:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.training-sub__btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Related Links */
+.training-sub__related {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.training-sub__related h3 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--service-navy);
+}
+
+.training-sub__related-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.training-sub__related-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: #f1f5f9;
+  color: var(--service-navy);
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: 20px;
+  text-decoration: none;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.training-sub__related-chip:hover,
+.training-sub__related-chip:focus-visible {
+  background: #071a40;
+  color: #ffffff;
+  border-color: #071a40;
+}
+
+@media (max-width: 768px) {
   .service-detail--general-training {
-    padding: 32px 0 56px;
+    margin: 24px auto 48px;
   }
 
-  .service-detail--general-training h1 {
-    font-size: 1.5rem;
+  .training-sub__cta-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .training-sub__whatsapp-button,
+  .training-sub__contact-button {
+    width: 100%;
   }
 }

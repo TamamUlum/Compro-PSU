@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import LoadingImage from "../components/LoadingImage";
+import SeoHead from "../components/SeoHead";
 import { useLanguage } from "../context/useLanguage";
 import { translateArticleLabel } from "../context/translations";
 import { FALLBACK_ARTICLES } from "../data/articlesFallback";
@@ -73,6 +74,7 @@ const MAIN_SERVICES = [
     descId: "Penilaian kesesuaian dan sertifikasi produk berdasarkan standar serta skema sertifikasi yang berlaku.",
     descEn: "Conformity assessment and product certification based on applicable standards and certification schemes.",
     file: "LSPro.webp",
+    link: "/lspro",
   },
   {
     id: "Laboratorium Pengujian",
@@ -80,6 +82,7 @@ const MAIN_SERVICES = [
     descId: "Pelaksanaan pengujian untuk mendukung evaluasi karakteristik, mutu, keamanan, dan kesesuaian produk terhadap persyaratan teknis.",
     descEn: "Conducting tests to support the evaluation of characteristics, quality, safety, and product conformity to technical requirements.",
     file: "lab_pengujian.webp",
+    link: "/layanan/penguji",
   },
   {
     id: "Laboratorium Kalibrasi",
@@ -87,6 +90,7 @@ const MAIN_SERVICES = [
     descId: "Layanan kalibrasi peralatan ukur untuk mendukung akurasi pengukuran dan ketertelusuran metrologi.",
     descEn: "Calibration services for measuring instruments to support measurement accuracy and metrological traceability.",
     file: "lab_kalibrasi.webp",
+    link: "/layanan/kalibrasi",
   },
   {
     id: "Lembaga Pelatihan",
@@ -94,13 +98,15 @@ const MAIN_SERVICES = [
     descId: "Pelatihan teknis, sistem manajemen, standar, audit, dan peningkatan kompetensi personel sesuai kebutuhan organisasi.",
     descEn: "Technical training, management systems, standards, audits, and personnel competency enhancement according to organizational needs.",
     file: "_pelatihan.webp",
+    link: "/layanan/pelatihan",
   },
   {
     id: "Sistem Manajemen Mutu",
     en: "Quality Management System",
-    descId: "Layanan pelatihan dan pendampingan penerapan, evaluasi, serta peningkatan sistem manajemen mutu organisasi.",
-    descEn: "Training services and assistance in the implementation, evaluation, and improvement of organizational quality management systems.",
+    descId: "Layanan audit, sertifikasi, evaluasi, serta pemeliharaan kepatuhan standar sistem manajemen mutu organisasi.",
+    descEn: "Audit, certification, evaluation, and compliance maintenance services for organizational quality management systems.",
     file: "sistem_manajemen_mutu.webp",
+    link: "/layanan/sertif-manajemen",
   },
 ];
 
@@ -110,7 +116,15 @@ export default function Home() {
   const { lang } = useLanguage();
   const marqueeRef = useRef(null);
   const groupRef = useRef(null);
-  const marqueeCtl = useRef({ hover: false, drag: false, startX: 0, startScroll: 0, pauseUntil: 0 });
+  const marqueeCtl = useRef({
+    hover: false,
+    drag: false,
+    startX: 0,
+    startY: 0,
+    startScroll: 0,
+    pauseUntil: 0,
+    dragDistance: 0,
+  });
 
   useEffect(() => {
     let active = true;
@@ -139,6 +153,32 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((c) => (c + 1) % BANNERS.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    const revealElements = document.querySelectorAll(".reveal");
+    revealElements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
   // Auto-scroll "Layanan Utama Kami" (desktop saja): berhenti saat cursor di atasnya, bisa digeser manual
   useEffect(() => {
     const el = marqueeRef.current;
@@ -146,6 +186,9 @@ export default function Home() {
     if (!el || !group) return undefined;
 
     const mq = window.matchMedia("(min-width: 861px)");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return undefined;
+
     const ctl = marqueeCtl.current;
     let raf = 0;
     let last = 0;
@@ -190,60 +233,91 @@ export default function Home() {
   };
 
   const handleMarqueePointerDown = (e) => {
-    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
     const ctl = marqueeCtl.current;
-    ctl.drag = true;
+    ctl.drag = false;
+    ctl.dragDistance = 0;
     ctl.startX = e.clientX;
-    ctl.startScroll = marqueeRef.current.scrollLeft;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    e.currentTarget.classList.add("is-dragging");
+    ctl.startY = e.clientY;
+    ctl.startScroll = marqueeRef.current ? marqueeRef.current.scrollLeft : 0;
   };
 
   const handleMarqueePointerMove = (e) => {
     const ctl = marqueeCtl.current;
-    if (!ctl.drag) return;
-    marqueeRef.current.scrollLeft = ctl.startScroll - (e.clientX - ctl.startX);
+    if (ctl.startX === 0 && ctl.startY === 0) return;
+    const dx = e.clientX - ctl.startX;
+    const dy = e.clientY - ctl.startY;
+    const dist = Math.hypot(dx, dy);
+    ctl.dragDistance = dist;
+
+    // Hanya aktifkan drag scrolling jika melebihi threshold 8px (klik murni tidak diganggu)
+    if (dist > 8) {
+      ctl.drag = true;
+      ctl.pauseUntil = performance.now() + 3000;
+      if (marqueeRef.current) {
+        marqueeRef.current.classList.add("is-dragging");
+        marqueeRef.current.scrollLeft = ctl.startScroll - dx;
+      }
+    }
   };
 
-  const endMarqueeDrag = (e) => {
+  const endMarqueeDrag = () => {
     const ctl = marqueeCtl.current;
-    if (!ctl.drag) return;
-    ctl.drag = false;
-    e.currentTarget.classList.remove("is-dragging");
+    if (ctl.drag) {
+      ctl.drag = false;
+      ctl.pauseUntil = performance.now() + 2500;
+    }
+    if (marqueeRef.current) {
+      marqueeRef.current.classList.remove("is-dragging");
+    }
+    ctl.startX = 0;
+    ctl.startY = 0;
+    setTimeout(() => {
+      ctl.dragDistance = 0;
+    }, 120);
+  };
+
+  const handleCardClick = (e) => {
+    const ctl = marqueeCtl.current;
+    // Cegah navigasi jika terjadi gesture drag signifikan (> 8px)
+    if (ctl.dragDistance > 8) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
+  const handlePrevService = () => {
+    const el = marqueeRef.current;
+    if (!el) return;
+    marqueeCtl.current.pauseUntil = performance.now() + 4000;
+    el.scrollBy({ left: -364, behavior: "smooth" });
+  };
+
+  const handleNextService = () => {
+    const el = marqueeRef.current;
+    if (!el) return;
+    marqueeCtl.current.pauseUntil = performance.now() + 4000;
+    el.scrollBy({ left: 364, behavior: "smooth" });
   };
 
   const pauseMarqueeBriefly = () => {
     marqueeCtl.current.pauseUntil = performance.now() + 2000;
   };
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((c) => (c + 1) % BANNERS.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            obs.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-
-    const revealElements = document.querySelectorAll(".reveal");
-    revealElements.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <main className="home">
+      <SeoHead
+        title={lang === "en" ? "Home" : "Beranda"}
+        description={
+          lang === "en"
+            ? "PT Penilai Standar Uji (PSU) is your trusted partner in conformity assessment, laboratory testing, calibration, and product certification."
+            : "PT Penilai Standar Uji (PSU) adalah mitra tepercaya Anda dalam penilaian kesesuaian, pengujian laboratorium, kalibrasi, dan sertifikasi produk SNI."
+        }
+        canonical="/"
+        type="website"
+        primaryImage="/Logo_PSU_banner1.webp"
+        lang={lang}
+      />
       <div className="home__hero">
         {BANNERS.map((banner, i) => (
           <img
@@ -293,59 +367,107 @@ export default function Home() {
         </blockquote>
       </section>
 
+      {/* Seksi Layanan Utama Kami (Marquee Loop) */}
       <section className="main-services reveal" aria-labelledby="main-services-title">
         <div className="main-services__bg"></div>
 
-        <div className="main-services__header"> 
+        <div className="main-services__header">
           <h2 id="main-services-title" className="sectors__heading main-services__heading">
             {lang === "en" ? "OUR MAIN SERVICES" : "LAYANAN UTAMA KAMI"}
           </h2>
         </div>
 
-        <div
-          className="main-services__marquee"
-          ref={marqueeRef}
-          onScroll={handleMarqueeScroll}
-          onMouseEnter={() => { marqueeCtl.current.hover = true; }}
-          onMouseLeave={() => { marqueeCtl.current.hover = false; }}
-          onPointerDown={handleMarqueePointerDown}
-          onPointerMove={handleMarqueePointerMove}
-          onPointerUp={endMarqueeDrag}
-          onPointerCancel={endMarqueeDrag}
-          onWheel={pauseMarqueeBriefly}
-          onTouchStart={pauseMarqueeBriefly}
-          onTouchMove={pauseMarqueeBriefly}
-        >
-          <div className="main-services__track">
-            <div className="main-services__group" ref={groupRef}>
-              {MAIN_SERVICES.map((service, index) => (
-                <div 
-                  className="main-services__card" 
-                  key={`original-${index}`} 
-                  style={{ backgroundImage: `url(/${service.file})` }}
-                >
-                  <div className="main-services__card-content">
-                    <h4>{lang === "en" ? service.en : service.id}</h4>
-                    <p>{lang === "en" ? service.descEn : service.descId}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="main-services__group main-services__group--duplicate" aria-hidden="true">
-              {MAIN_SERVICES.map((service, index) => (
-                <div 
-                  className="main-services__card" 
-                  key={`dup-${index}`} 
-                  style={{ backgroundImage: `url(/${service.file})` }}
-                >
-                  <div className="main-services__card-content">
-                    <h4>{lang === "en" ? service.en : service.id}</h4>
-                    <p>{lang === "en" ? service.descEn : service.descId}</p>
-                  </div>
-                </div>
-              ))}
+        <div className="main-services__slider-wrap">
+          <button
+            type="button"
+            className="main-services__arrow main-services__arrow--prev"
+            aria-label={lang === "en" ? "Previous service" : "Layanan sebelumnya"}
+            onClick={handlePrevService}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          <div
+            className="main-services__marquee"
+            ref={marqueeRef}
+            onScroll={handleMarqueeScroll}
+            onMouseEnter={() => {
+              marqueeCtl.current.hover = true;
+            }}
+            onMouseLeave={() => {
+              marqueeCtl.current.hover = false;
+            }}
+            onFocus={() => {
+              marqueeCtl.current.hover = true;
+            }}
+            onBlur={() => {
+              marqueeCtl.current.hover = false;
+            }}
+            onPointerDown={handleMarqueePointerDown}
+            onPointerMove={handleMarqueePointerMove}
+            onPointerUp={endMarqueeDrag}
+            onPointerCancel={endMarqueeDrag}
+            onWheel={pauseMarqueeBriefly}
+            onTouchStart={pauseMarqueeBriefly}
+            onTouchMove={pauseMarqueeBriefly}
+          >
+            <div className="main-services__track">
+              {/* Original Group: interactive links reachable by keyboard & screen readers */}
+              <div className="main-services__group" ref={groupRef}>
+                {MAIN_SERVICES.map((service, index) => (
+                  <Link
+                    to={service.link}
+                    className="main-services__card"
+                    key={`original-${index}`}
+                    style={{ backgroundImage: `url(/${service.file})` }}
+                    aria-label={`${lang === "en" ? service.en : service.id} - ${lang === "en" ? service.descEn : service.descId}`}
+                    onClick={handleCardClick}
+                  >
+                    <div className="main-services__card-content">
+                      <h4>{lang === "en" ? service.en : service.id}</h4>
+                      <p>{lang === "en" ? service.descEn : service.descId}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Duplicate Group: visually completes seamless loop, accessible to mouse clicks while hidden from screen reader tab trees */}
+              <div
+                className="main-services__group main-services__group--duplicate"
+                aria-hidden="true"
+              >
+                {MAIN_SERVICES.map((service, index) => (
+                  <Link
+                    to={service.link}
+                    className="main-services__card"
+                    key={`duplicate-${index}`}
+                    style={{ backgroundImage: `url(/${service.file})` }}
+                    tabIndex="-1"
+                    aria-hidden="true"
+                    onClick={handleCardClick}
+                  >
+                    <div className="main-services__card-content">
+                      <h4>{lang === "en" ? service.en : service.id}</h4>
+                      <p>{lang === "en" ? service.descEn : service.descId}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
+
+          <button
+            type="button"
+            className="main-services__arrow main-services__arrow--next"
+            aria-label={lang === "en" ? "Next service" : "Layanan berikutnya"}
+            onClick={handleNextService}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
         </div>
       </section>
 

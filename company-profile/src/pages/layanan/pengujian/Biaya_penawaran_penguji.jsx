@@ -1,13 +1,10 @@
 import PageHeader from "../../../components/PageHeader";
 import "./Biaya_penawaran_penguji.css";
 import LocalizedText from "../../../components/LocalizedText";
-
-const WHATSAPP_NUMBER = "6281908344114";
-const WHATSAPP_MESSAGE =
-  "Halo, saya ingin meminta informasi dan penawaran biaya pengujian produk. Produk atau sampel yang akan diuji adalah [jenis produk], dengan parameter pengujian [parameter]. Mohon informasi mengenai metode atau standar pengujian, estimasi biaya, dan waktu penyelesaian. Terima kasih.";
+import { getWhatsAppUrl } from "../../../utils/whatsapp";
 
 export default function Biayapenawaranpenguji() {
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+  const whatsappUrl = getWhatsAppUrl("/layanan/penguji/biaya-sertif");
 
   return (
     <>

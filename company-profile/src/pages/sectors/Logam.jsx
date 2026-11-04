@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/useLanguage";
@@ -48,6 +49,15 @@ export default function Logam() {
 
   return (
     <section className="sector-detail-page">
+      <SeoHead
+        title="Logam dan Produk Logam"
+        description="Layanan pengujian migrasi kimia, ketahanan mekanik, dan sertifikasi SNI produk logam, cookware, flatware, dan foodtray oleh PT Penilai Standar Uji."
+        canonical="/logam"
+        type="service"
+        breadcrumbs={[{ label: "Logam dan Produk Logam", href: "/logam" }]}
+        primaryImage="/Stainless.webp"
+        lang={lang}
+      />
       <PageHeader
         fullWidth
         title="Logam dan Produk Logam"

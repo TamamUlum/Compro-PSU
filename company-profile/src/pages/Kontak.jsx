@@ -1,4 +1,5 @@
 import "./Kontak.css";
+import SeoHead from "../components/SeoHead";
 import { useLanguage } from "../context/useLanguage";
 
 const MAPS_LINK =
@@ -122,6 +123,14 @@ export default function Kontak() {
 
   return (
     <>
+      <SeoHead
+        title={t("Hubungi Kami")}
+        description="Hubungi PT PENILAI STANDAR UJI (PSU) untuk konsultasi sertifikasi produk SNI, pengujian laboratorium terakreditasi, dan kalibrasi alat ukur."
+        canonical="/kontak"
+        type="contact"
+        breadcrumbs={[{ label: t("Hubungi Kami"), href: "/kontak" }]}
+        primaryImage="/banner-contact.jpeg"
+      />
       <div className="contact-banner">
         <img src="/banner-contact.png" alt="" />
       </div>

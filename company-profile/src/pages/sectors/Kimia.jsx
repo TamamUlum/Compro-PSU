@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/useLanguage";
@@ -152,6 +153,15 @@ export default function Kimia() {
 
   return (
     <section className="sector-detail-page">
+      <SeoHead
+        title="Bahan dan Produk Kimia"
+        description="Layanan pengujian dan sertifikasi SNI pupuk pertanian dan bahan kimia industri (Urea, NPK, SP-36, TSP, ZA, MAP, DAP) oleh PT Penilai Standar Uji."
+        canonical="/kimia"
+        type="service"
+        breadcrumbs={[{ label: "Bahan dan Produk Kimia", href: "/kimia" }]}
+        primaryImage="/4.kimia.webp"
+        lang={lang}
+      />
       <PageHeader
         fullWidth
         title="Bahan dan Produk Kimia"

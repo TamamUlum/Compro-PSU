@@ -47,7 +47,8 @@
 
 .service-detail--biaya-penawaran-sertif p {
   margin: 0 0 16px;
-  text-align: justify;
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
 }
 
 .service-detail--biaya-penawaran-sertif .product-fees__tagline {

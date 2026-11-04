@@ -80,7 +80,7 @@
   font-size: clamp(0.95rem, 1.6vw, 1.15rem);
   line-height: 1.75;
   color: rgba(255, 255, 255, 0.92);
-  text-align: justify;
+  text-align: left;
 }
 
 .jasa-card__desc strong {

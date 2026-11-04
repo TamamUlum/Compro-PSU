@@ -40,9 +40,9 @@
 .profile-page__intro {
   width: 100%;
   margin: 0;
-  text-align: justify;
+  text-align: left;
   font-size: 1.0625rem;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .profile-page__intro p + p {
@@ -139,9 +139,9 @@
 
 .about-showcase__text-content p {
   margin: 0 0 14px;
-  text-align: justify;
+  text-align: left;
   font-size: 0.95rem;
-  line-height: 1.65;
+  line-height: 1.7;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
@@ -214,9 +214,9 @@
 
 .sejarah__timeline-content p {
   margin: 0;
-  text-align: justify;
+  text-align: left;
   font-size: 1.0625rem;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .line-in, .line-out-v1, .line-out-h {
@@ -339,9 +339,9 @@
 
 .vision-mission__desc {
   font-size: 0.95rem;
-  line-height: 1.55;
+  line-height: 1.65;
   margin: 0;
-  text-align: justify;
+  text-align: left;
   color: var(--psu-text); 
 }
 
@@ -418,7 +418,7 @@
   line-height: 1.8;
   color: var(--psu-text);
   margin: 0 0 28px;
-  text-align: justify;
+  text-align: left;
 }
 
 .commitment__desc:last-child {

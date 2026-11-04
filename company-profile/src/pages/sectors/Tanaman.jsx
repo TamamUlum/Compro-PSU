@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/useLanguage";
@@ -120,6 +121,15 @@ export default function Tanaman() {
 
   return (
     <section className="sector-detail-page">
+      <SeoHead
+        title={title}
+        description="Layanan pengujian dan sertifikasi mutu produk olahan tanaman dan turunan nabati (kopi, kakao, gula, minyak sawit, biskuit) oleh PT Penilai Standar Uji."
+        canonical="/tanaman"
+        type="service"
+        breadcrumbs={[{ label: title, href: "/tanaman" }]}
+        primaryImage="/2.tanaman.webp"
+        lang={lang}
+      />
       <PageHeader
         fullWidth
         title={title}

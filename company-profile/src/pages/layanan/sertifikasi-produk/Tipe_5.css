@@ -383,10 +383,8 @@
   margin: 6px 0 0;
   color: #000;
   font-size: 0.9rem;
-  line-height: 1.65;
-  text-align: justify;
-  text-align-last: left;
-  text-justify: inter-word;
+  line-height: var(--content-line-height, 1.7);
+  text-align: left;
 }
 
 .tipe-5__siinas-decision {
@@ -488,11 +486,8 @@
   margin: 0 0 18px;
   color: #536174;
   font-size: 0.975rem;
-  line-height: 1.65;
-  text-align: justify;
-  text-align-last: left;
-  text-justify: inter-word;
-  word-spacing: normal;
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
 }
 
 .tipe-5__documents .tipe-5__documents-list {
@@ -527,11 +522,8 @@
 .tipe-5__document-item > span:last-child {
   flex: 1;
   min-width: 0;
-  line-height: 1.6;
-  text-align: justify;
-  text-align-last: left;
-  text-justify: inter-word;
-  word-spacing: normal;
+  line-height: var(--content-line-height, 1.7);
+  text-align: left;
 }
 
 .tipe-5__document-number {

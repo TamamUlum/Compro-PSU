@@ -1,48 +1,248 @@
 .service-detail--hak-kewajiban-klien-sertif-sistem {
   --service-navy: #0b2a5b;
-  --service-text: #1d2733;
-  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 48px 0 88px;
+  --service-gold: #c5a059;
+  --service-text: #202124;
+  box-sizing: border-box;
+  margin: 40px auto 72px;
+  padding: clamp(24px, 5vw, 48px);
   color: var(--service-text);
   font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  background: #ffffff;
+  border: 1px solid #e7e9ec;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(7, 26, 64, 0.06);
 }
 
-.service-detail--hak-kewajiban-klien-sertif-sistem h1 {
-  margin: 0 0 24px;
+.hakkewajiban-sub__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #f1f4f8;
+  padding-bottom: 16px;
+}
+
+.hakkewajiban-sub__heading-icon {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   color: var(--service-navy);
-  font-size: 2rem;
+}
+
+.hakkewajiban-sub__heading h1 {
+  margin: 0;
+  color: var(--service-navy);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 750;
   line-height: 1.25;
 }
 
-.service-detail--hak-kewajiban-klien-sertif-sistem p,
-.service-detail--hak-kewajiban-klien-sertif-sistem li {
-  max-width: 80ch;
-  font-size: 1.0625rem;
-  line-height: 1.7;
-}
-
-.service-detail--hak-kewajiban-klien-sertif-sistem p {
+.hakkewajiban-sub__tagline {
   margin: 0 0 20px;
+  font-size: 1.1rem;
+  font-weight: 650;
+  color: #c5a059;
 }
 
-.service-detail--hak-kewajiban-klien-sertif-sistem ul,
-.service-detail--hak-kewajiban-klien-sertif-sistem ol {
-  max-width: 80ch;
-  padding-left: 22px;
+.hakkewajiban-sub__content-body p {
+  margin: 0 0 16px;
+  font-size: var(--content-font-size, 1.05rem);
+  line-height: var(--content-line-height, 1.75);
+  color: #334155;
+  text-align: left;
 }
 
-.service-detail--hak-kewajiban-klien-sertif-sistem li + li {
-  margin-top: 8px;
+.hakkewajiban-sub__block {
+  margin: var(--content-section-gap, 28px) 0;
+  background: var(--content-box-bg, #ffffff);
+  border: 1px solid var(--content-border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: var(--content-box-padding, 28px);
+  box-shadow: 0 4px 16px rgba(7, 26, 64, 0.04);
+}
+
+.hakkewajiban-sub__subheading {
+  margin: 0 0 16px;
+  font-size: var(--content-heading-size, 1.25rem);
+  font-weight: var(--content-heading-weight, 700);
+  color: var(--service-navy);
+  border-left: 4px solid var(--service-gold);
+  padding-left: 12px;
+  text-align: left;
+}
+
+.hakkewajiban-sub__list {
+  margin: 0;
+  padding-left: 1.75rem;
+  list-style: decimal outside;
+  color: #334155;
+  font-size: var(--content-font-size, 1rem);
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
+}
+
+.hakkewajiban-sub__list li {
+  margin-bottom: var(--content-list-gap, 12px);
+  text-align: left;
+  padding-left: 0.35rem;
+  line-height: var(--content-line-height, 1.75);
+}
+
+/* Consultation & CTA Box */
+.hakkewajiban-sub__consultation {
+  margin-top: 36px;
+  padding: clamp(24px, 4vw, 36px);
+  background: linear-gradient(135deg, #071a40 0%, #0d285d 100%);
+  border-radius: 14px;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(7, 26, 64, 0.15);
+}
+
+.hakkewajiban-sub__consultation-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.hakkewajiban-sub__consultation-icon {
+  width: 24px;
+  height: 24px;
+  color: #f1c40f;
+  flex-shrink: 0;
+}
+
+.hakkewajiban-sub__consultation-heading h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.hakkewajiban-sub__consultation p {
+  margin: 0 0 20px;
+  color: #e2e8f0;
+  font-size: 1rem;
+  line-height: 1.65;
+  text-align: left;
+}
+
+.hakkewajiban-sub__cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+.hakkewajiban-sub__btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #25d366;
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 650;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.hakkewajiban-sub__btn-whatsapp:hover {
+  background: #20ba5a;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4);
+  transform: translateY(-1px);
+}
+
+.hakkewajiban-sub__btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.hakkewajiban-sub__btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Related Links */
+.hakkewajiban-sub__related {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid #e7e9ec;
+}
+
+.hakkewajiban-sub__related h3 {
+  margin: 0 0 16px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--service-navy);
+}
+
+.hakkewajiban-sub__related-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.hakkewajiban-sub__related-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.hakkewajiban-sub__related-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.hakkewajiban-sub__related-title {
+  font-weight: 700;
+  color: var(--service-navy);
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.hakkewajiban-sub__related-desc {
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.45;
 }
 
 @media (max-width: 720px) {
   .service-detail--hak-kewajiban-klien-sertif-sistem {
-    padding: 32px 0 56px;
+    margin: 24px auto 48px;
+    padding: 20px 16px;
   }
 
-  .service-detail--hak-kewajiban-klien-sertif-sistem h1 {
-    font-size: 1.5rem;
+  .hakkewajiban-sub__content-body p {
+    text-align: left;
+  }
+
+  .hakkewajiban-sub__cta-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hakkewajiban-sub__btn-whatsapp,
+  .hakkewajiban-sub__btn-secondary {
+    justify-content: center;
   }
 }

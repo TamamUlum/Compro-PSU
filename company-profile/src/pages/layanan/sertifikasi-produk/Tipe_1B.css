@@ -228,11 +228,8 @@
   margin: 0 0 18px;
   color: #536174;
   font-size: 0.975rem;
-  line-height: 1.65;
-  text-align: justify;
-  text-align-last: left;
-  text-justify: inter-word;
-  word-spacing: normal;
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
 }
 
 .tipe-1b__documents .tipe-1b__documents-list {
@@ -267,11 +264,8 @@
 .tipe-1b__document-item > span:last-child {
   flex: 1;
   min-width: 0;
-  line-height: 1.6;
-  text-align: justify;
-  text-align-last: left;
-  text-justify: inter-word;
-  word-spacing: normal;
+  line-height: var(--content-line-height, 1.7);
+  text-align: left;
 }
 
 .tipe-1b__document-number {
@@ -395,10 +389,8 @@
   margin: 6px 0 0;
   color: #000;
   font-size: 0.9rem;
-  line-height: 1.65;
-  text-align: justify;
-  text-align-last: left;
-  text-justify: inter-word;
+  line-height: var(--content-line-height, 1.7);
+  text-align: left;
 }
 
 .tipe-1b__siinas-decision {
@@ -498,11 +490,8 @@
   max-width: none;
   margin: 6px 0 0;
   font-size: 0.9rem;
-  line-height: 1.6;
-  text-align: justify;
-  text-align-last: left;
-  text-justify: inter-word;
-  word-spacing: normal;
+  line-height: var(--content-line-height, 1.7);
+  text-align: left;
 }
 
 .service-detail--tipe-1b ul,

@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/useLanguage";
@@ -56,6 +57,15 @@ export default function Pertanian() {
 
   return (
     <section className="sector-detail-page">
+      <SeoHead
+        title={title}
+        description="Layanan pengujian dan sertifikasi SNI komoditas pertanian dan perkebunan (beras, biji kakao, biji kopi) oleh PT Penilai Standar Uji."
+        canonical="/pertanian"
+        type="service"
+        breadcrumbs={[{ label: title, href: "/pertanian" }]}
+        primaryImage="/1.pertanian.webp"
+        lang={lang}
+      />
       <PageHeader
         fullWidth
         title={title}

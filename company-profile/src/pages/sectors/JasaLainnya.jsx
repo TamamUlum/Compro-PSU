@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/useLanguage";
@@ -31,6 +32,15 @@ export default function JasaLainnya() {
 
   return (
     <section className="sector-detail-page">
+      <SeoHead
+        title={title}
+        description="Layanan sertifikasi SNI Pasar Rakyat dan sektor jasa lainnya oleh PT Penilai Standar Uji untuk meningkatkan mutu pelayanan publik."
+        canonical="/jasa-lainnya"
+        type="service"
+        breadcrumbs={[{ label: title, href: "/jasa-lainnya" }]}
+        primaryImage="/Jasa_Lainnya.webp"
+        lang={lang}
+      />
       <PageHeader
         fullWidth
         title={title}

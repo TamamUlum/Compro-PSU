@@ -201,9 +201,9 @@
 .pangan-card__desc {
   margin: 0;
   font-size: 0.95rem;
-  line-height: 1.6;
+  line-height: 1.7;
   color: rgba(255, 255, 255, 0.9);
-  text-align: justify;
+  text-align: left;
 }
 
 @media (max-width: 992px) {

@@ -1,15 +1,17 @@
+import { useLocation } from "react-router-dom";
 import "./WaFloat.css";
 import { useLanguage } from "../context/useLanguage";
-
-const WA_NUMBER = "6281908344114";
+import { getWhatsAppUrl } from "../utils/whatsapp";
 
 export default function WaFloat() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const location = useLocation();
+  const whatsappUrl = getWhatsAppUrl(location.pathname, null, lang);
 
   return (
     <a
       className="wa-float"
-      href={`https://wa.me/${WA_NUMBER}`}
+      href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t("Hubungi kami melalui WhatsApp")}

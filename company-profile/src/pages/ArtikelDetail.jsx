@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
+import SeoHead from "../components/SeoHead";
 import { useLanguage } from "../context/useLanguage";
 import { translateArticleLabel } from "../context/translations";
 import { FALLBACK_ARTICLES } from "../data/articlesFallback";
@@ -108,6 +109,19 @@ export default function ArtikelDetail() {
 
   return (
     <>
+      <SeoHead
+        title={title}
+        description={article.excerpt_id}
+        canonical={`/artikel/${article.slug}`}
+        type="article"
+        breadcrumbs={[
+          { label: "Artikel", href: "/artikel" },
+          { label: title },
+        ]}
+        articleData={article}
+        primaryImage={article.image_url}
+        lang={lang}
+      />
       <PageHeader
         title="Artikel"
         breadcrumbs={[

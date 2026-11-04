@@ -32,6 +32,7 @@ const menuLayanan = [
     label: "Lembaga Sertifikasi Produk",
     id: "sertifikasi-produk",
     href: "/layanan/sertif-produk",
+    linkParent: true,
     children: [
       {
         label: "Legalitas",
@@ -81,6 +82,7 @@ const menuLayanan = [
     label: "Lembaga Pengujian",
     id: "pengujian",
     href: "/layanan/penguji",
+    linkParent: true,
     children: [
       {
         label: "Legalitas",
@@ -105,6 +107,7 @@ const menuLayanan = [
     label: "Lembaga Kalibrasi",
     id: "kalibrasi",
     href: "/layanan/kalibrasi",
+    linkParent: true,
     children: [
       { 
         label: "Legalitas", 
@@ -130,6 +133,7 @@ const menuLayanan = [
     label: "Lembaga Sertifikasi Sistem Manajemen",
     id: "sertifikasi-sistem",
     href: "/layanan/sertif-manajemen",
+    linkParent: true,
     children: [
       {
         label: "Legalitas",
@@ -161,6 +165,7 @@ const menuLayanan = [
     label: "Lembaga Pelatihan",
     id: "pelatihan",
     href: "/layanan/pelatihan",
+    linkParent: true,
     children: [
       {
         label: "General Training",

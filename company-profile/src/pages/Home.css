@@ -63,9 +63,9 @@
 
 .about__body p {
   margin: 0 0 1.1em;
-  text-align: justify;
+  text-align: left;
   font-size: 1.0625rem;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .about__body strong {
@@ -643,9 +643,65 @@
 }
 
 .main-services__header,
+.main-services__slider-wrap,
 .main-services__marquee {
   position: relative;
   z-index: 2; 
+}
+
+.main-services__slider-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.main-services__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  background: rgba(7, 26, 64, 0.85);
+  border: 1.5px solid rgba(255, 215, 0, 0.5);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding: 0;
+}
+
+.main-services__arrow:hover {
+  background: var(--psu-navy, #071a40);
+  border-color: var(--psu-gold, #ffd700);
+  color: var(--psu-gold, #ffd700);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+}
+
+.main-services__arrow:focus-visible {
+  outline: 2px solid var(--psu-gold, #ffd700);
+  outline-offset: 3px;
+}
+
+.main-services__arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.main-services__arrow--prev {
+  left: clamp(12px, 2.5vw, 36px);
+}
+
+.main-services__arrow--next {
+  right: clamp(12px, 2.5vw, 36px);
 }
 
 .main-services__header {
@@ -705,6 +761,17 @@
   opacity: 0;
   filter: brightness(0);
   transform: scale(0.95);
+  display: block;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+  transition: outline 0.2s ease, transform 0.2s ease;
+}
+
+.main-services__card:hover,
+.main-services__card:focus-visible {
+  outline: 3px solid var(--psu-gold, #c5a059);
+  outline-offset: -3px;
 }
 
 .main-services__card::before {
@@ -767,6 +834,15 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .main-services.is-visible .main-services__card {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
 /* Desktop: auto-scroll dijalankan via JS (Home.jsx), berhenti saat hover, bisa digeser/drag manual */
 
 @media (max-width: 860px) {
@@ -817,6 +893,21 @@
     width: min(80vw, 320px);
     height: 380px;
     scroll-snap-align: center;
+  }
+
+  .main-services__arrow {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+  }
+
+  .main-services__arrow--prev {
+    left: 4px;
+  }
+
+  .main-services__arrow--next {
+    right: 4px;
   }
 }
 

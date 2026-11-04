@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useState } from "react";
 import LocalizedText from "../../components/LocalizedText";
 import { useLanguage } from "../../context/useLanguage";
@@ -121,6 +122,17 @@ export default function ClientCalibration() {
 
   return (
     <>
+      <SeoHead
+        title="Tracking Sertifikat Kalibrasi"
+        description="Pelacakan keabsahan sertifikat kalibrasi instrumen ukur dan peralatan kesehatan PT Penilai Standar Uji."
+        canonical="/client/kalibrasi"
+        type="service"
+        breadcrumbs={[
+          { label: "Client", href: "/client/kalibrasi" },
+          { label: "Lembaga Kalibrasi", href: "/client/kalibrasi" },
+        ]}
+        primaryImage="/lab_kalibrasi.webp"
+      />
       <PageHeader
         title="Lembaga Kalibrasi"
         breadcrumbs={[

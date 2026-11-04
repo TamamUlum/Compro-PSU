@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/useLanguage";
@@ -61,6 +62,15 @@ export default function Pangan() {
 
   return (
     <section className="sector-detail-page">
+      <SeoHead
+        title="Produk Pangan"
+        description="Pengujian laboratorium dan sertifikasi mutu produk pangan olahan, air minum dalam kemasan (AMDK), air mineral alami, dan air demineral standar SNI."
+        canonical="/pangan"
+        type="service"
+        breadcrumbs={[{ label: "Produk Pangan", href: "/pangan" }]}
+        primaryImage="/3.pangan.webp"
+        lang={lang}
+      />
       <PageHeader
         fullWidth
         title="Produk Pangan"

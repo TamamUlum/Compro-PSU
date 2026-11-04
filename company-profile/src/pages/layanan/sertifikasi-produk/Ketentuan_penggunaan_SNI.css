@@ -52,10 +52,9 @@
 .ketentuan-sni__content > p {
   margin: 0 0 12px;
   color: #4c5b70;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  text-align: justify;
-  text-justify: inter-word;
+  font-size: var(--content-font-size, 0.95rem);
+  line-height: var(--content-line-height, 1.7);
+  text-align: left;
 }
 
 .ketentuan-sni__document {

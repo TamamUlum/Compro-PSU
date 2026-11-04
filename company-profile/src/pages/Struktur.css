@@ -166,9 +166,9 @@
 
 .leader__duty {
   margin: 0;
-  text-align: justify;
+  text-align: left;
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 @media (max-width: 600px) {

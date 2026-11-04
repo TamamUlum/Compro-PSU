@@ -1,0 +1,293 @@
+/* ==========================================================================
+   SERVICE LANDING PAGES — PT PENILAI STANDAR UJI (PSU)
+   ========================================================================== */
+
+.service-landing {
+  width: min(100% - 2 * var(--site-gutter), var(--site-max-width));
+  margin: 0 auto;
+  padding: 48px 0 80px;
+  box-sizing: border-box;
+}
+
+/* Hero Section */
+.service-landing__hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 48px;
+}
+
+.service-landing__badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.service-landing__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #071a40;
+  color: var(--psu-gold, #c5a059);
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.service-landing__badge--gold {
+  background: rgba(197, 160, 89, 0.15);
+  color: #8c6a23;
+  border: 1px solid rgba(197, 160, 89, 0.4);
+}
+
+.service-landing__title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #071a40;
+  margin: 0 0 16px 0;
+  line-height: 1.25;
+}
+
+.service-landing__lead {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: #4a5568;
+  margin: 0 0 24px 0;
+}
+
+.service-landing__hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.service-landing__btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #071a40;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  border: 2px solid #071a40;
+}
+
+.service-landing__btn-primary:hover {
+  background: var(--psu-gold, #c5a059);
+  border-color: var(--psu-gold, #c5a059);
+  color: #071a40;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(7, 26, 64, 0.2);
+}
+
+.service-landing__btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #ffffff;
+  color: #071a40;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  border: 2px solid #071a40;
+}
+
+.service-landing__btn-secondary:hover {
+  background: rgba(7, 26, 64, 0.05);
+  transform: translateY(-2px);
+}
+
+.service-landing__hero-media {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  height: 380px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.service-landing__hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Submenu Navigation Grid Section */
+.service-landing__section-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.service-landing__section-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #071a40;
+  margin: 0 0 10px 0;
+}
+
+.service-landing__section-subtitle {
+  font-size: 1rem;
+  color: #718096;
+  margin: 0;
+}
+
+.service-landing__grid,
+.service-landing__balanced-grid {
+  margin-bottom: 56px;
+}
+
+.service-landing__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 24px;
+}
+
+.service-landing__card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.service-landing__card:hover,
+.service-landing__card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--psu-gold, #c5a059);
+  box-shadow: 0 12px 28px rgba(7, 26, 64, 0.12);
+  outline: none;
+}
+
+.service-landing__card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(7, 26, 64, 0.06);
+  color: #071a40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  transition: all 0.25s ease;
+}
+
+.service-landing__card:hover .service-landing__card-icon {
+  background: #071a40;
+  color: var(--psu-gold, #c5a059);
+}
+
+.service-landing__card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #071a40;
+  margin: 0 0 10px 0;
+  line-height: 1.35;
+}
+
+.service-landing__card-desc {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #4a5568;
+  margin: 0 0 18px 0;
+  flex-grow: 1;
+}
+
+.service-landing__card-arrow {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #071a40;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.service-landing__card:hover .service-landing__card-arrow {
+  color: var(--psu-gold, #c5a059);
+  transform: translateX(4px);
+}
+
+/* Quality Commitment Box */
+.service-landing__commitment {
+  background: linear-gradient(135deg, #071a40 0%, #0d285a 100%);
+  border-radius: 16px;
+  padding: 36px 40px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  box-shadow: 0 10px 24px rgba(7, 26, 64, 0.2);
+}
+
+.service-landing__commitment-text h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--psu-gold, #c5a059);
+  margin: 0 0 8px 0;
+}
+
+.service-landing__commitment-text p {
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.service-landing__commitment-cta {
+  flex-shrink: 0;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 900px) {
+  .service-landing__hero {
+    grid-template-columns: 1fr;
+    padding: 28px;
+    gap: 28px;
+  }
+  .service-landing__hero-media {
+    height: 280px;
+  }
+  .service-landing__title {
+    font-size: 1.75rem;
+  }
+  .service-landing__commitment {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .service-landing {
+    padding: 32px 16px 64px;
+  }
+  .service-landing__grid {
+    grid-template-columns: 1fr;
+  }
+}
+

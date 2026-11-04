@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useState } from "react";
 import LocalizedText from "../../components/LocalizedText";
 import { useLanguage } from "../../context/useLanguage";
@@ -121,6 +122,17 @@ export default function ClientTesting() {
 
   return (
     <>
+      <SeoHead
+        title="Tracking Laporan Pengujian Laboratorium"
+        description="Pelacakan keabsahan nomor laporan hasil uji (LHU) Laboratorium Pengujian terakreditasi KAN LP-1554-IDN PT Penilai Standar Uji."
+        canonical="/client/pengujian"
+        type="service"
+        breadcrumbs={[
+          { label: "Client", href: "/client/pengujian" },
+          { label: "Lembaga Pengujian", href: "/client/pengujian" },
+        ]}
+        primaryImage="/lab_pengujian.webp"
+      />
       <PageHeader
         title="Lembaga Pengujian"
         breadcrumbs={[

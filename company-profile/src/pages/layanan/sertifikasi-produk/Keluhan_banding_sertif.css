@@ -84,10 +84,9 @@
   padding: 8px 0;
   counter-increment: ketentuan;
   color: var(--service-text);
-  font-size: 1rem;
-  line-height: 1.75;
-  text-align: justify;
-  text-justify: inter-word;
+  font-size: var(--content-font-size, 1rem);
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
 }
 
 .keluhan-banding__list li::before {

@@ -1,13 +1,10 @@
 import PageHeader from "../../../components/PageHeader";
 import "./Biaya_penawaran_sertif.css";
 import LocalizedText from "../../../components/LocalizedText";
-
-const WHATSAPP_NUMBER = "6281908344114";
-const WHATSAPP_MESSAGE =
-  "Halo, saya ingin berkonsultasi mengenai biaya dan penawaran sertifikasi produk. Mohon informasi mengenai persyaratan, ruang lingkup sertifikasi, tahapan proses, dan estimasi biaya untuk produk saya. Terima kasih.";
+import { getWhatsAppUrl } from "../../../utils/whatsapp";
 
 export default function Biayapenawaransertif() {
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+  const whatsappUrl = getWhatsAppUrl("/layanan/sertif-produk/biaya-sertif");
 
   return (
     <>

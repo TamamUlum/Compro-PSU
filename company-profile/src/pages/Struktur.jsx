@@ -1,4 +1,5 @@
 import PageHeader from "../components/PageHeader";
+import SeoHead from "../components/SeoHead";
 import { useEffect, useRef, useState } from "react";
 import arief from "../assets/arief.jpg";
 import amanda from "../assets/amanda.jpeg";
@@ -80,6 +81,22 @@ export default function Struktur() {
 
   return (
     <>
+      <SeoHead
+        title={lang === "en" ? "Organizational Structure" : "Struktur Organisasi"}
+        description={
+          lang === "en"
+            ? "Meet the leadership team and organizational structure of PT Penilai Standar Uji."
+            : "Struktur organisasi dan susunan pimpinan profesional PT Penilai Standar Uji."
+        }
+        canonical="/about/struktur-organisasi"
+        type="about"
+        breadcrumbs={[
+          { label: lang === "en" ? "About Us" : "Tentang Kami", href: "/about/profile" },
+          { label: lang === "en" ? "Organizational Structure" : "Struktur Organisasi", href: "/about/struktur-organisasi" },
+        ]}
+        primaryImage="/Logo_PSU_banner1.webp"
+        lang={lang}
+      />
       <PageHeader
         title="Struktur Organisasi"
         breadcrumbs={[

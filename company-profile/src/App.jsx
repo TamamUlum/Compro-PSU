@@ -44,6 +44,11 @@ import ManagementFees from "./pages/layanan/sertifikasi-sistem-manajemen/Biaya_p
 import GeneralTraining from "./pages/layanan/pelatihan/General_training";
 import InhouseTraining from "./pages/layanan/pelatihan/Inhouse_training";
 import ExhouseTraining from "./pages/layanan/pelatihan/Exhouse_training";
+import LembagaSertifikasiProdukLanding from "./pages/layanan/LembagaSertifikasiProdukLanding";
+import LembagaPengujianLanding from "./pages/layanan/LembagaPengujianLanding";
+import LembagaKalibrasiLanding from "./pages/layanan/LembagaKalibrasiLanding";
+import LembagaSertifikasiSistemManajemenLanding from "./pages/layanan/LembagaSertifikasiSistemManajemenLanding";
+import LembagaPelatihanLanding from "./pages/layanan/LembagaPelatihanLanding";
 import Pertanian from "./pages/sectors/Pertanian";
 import Tanaman from "./pages/sectors/Tanaman";
 import Pangan from "./pages/sectors/Pangan";
@@ -147,6 +152,15 @@ function App() {
                 <Route path="/artikel/:slug" element={<ArtikelDetail />} />
 
                 <Route path="/kontak" element={<Kontak />} />
+
+                {/* Halaman Informasi Umum Layanan (Landing Pages) */}
+                <Route path="/lspro" element={<LembagaSertifikasiProdukLanding />} />
+                <Route path="/layanan/sertif-produk" element={<LembagaSertifikasiProdukLanding />} />
+                <Route path="/layanan/penguji" element={<LembagaPengujianLanding />} />
+                <Route path="/layanan/kalibrasi" element={<LembagaKalibrasiLanding />} />
+                <Route path="/layanan/sertif-manajemen" element={<LembagaSertifikasiSistemManajemenLanding />} />
+                <Route path="/layanan/pelatihan" element={<LembagaPelatihanLanding />} />
+
                 <Route
                   path="/layanan/sertif-produk/legalitas"
                   element={<ProductLegalitas />}

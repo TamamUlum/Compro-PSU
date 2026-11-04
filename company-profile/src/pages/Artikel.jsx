@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
+import SeoHead from "../components/SeoHead";
 import LoadingImage from "../components/LoadingImage";
 import { useLanguage } from "../context/useLanguage";
 import { translateArticleLabel } from "../context/translations";
@@ -107,6 +108,19 @@ export default function Artikel() {
 
   return (
     <>
+      <SeoHead
+        title={lang === "en" ? "News & Articles" : "Berita & Artikel"}
+        description={
+          lang === "en"
+            ? "Latest news, regulatory updates, press releases, and articles on standards, testing, and certification by PT Penilai Standar Uji."
+            : "Update berita terkini, siaran pers, dan artikel teknis seputar standarisasi, pengujian laboratorium, dan sertifikasi SNI PT Penilai Standar Uji."
+        }
+        canonical="/artikel"
+        type="website"
+        breadcrumbs={[{ label: lang === "en" ? "News & Articles" : "Berita & Artikel", href: "/artikel" }]}
+        primaryImage="/Logo_PSU_banner1.webp"
+        lang={lang}
+      />
       <PageHeader
         title="Artikel"
         breadcrumbs={[{ label: "Artikel", href: "/artikel" }]}

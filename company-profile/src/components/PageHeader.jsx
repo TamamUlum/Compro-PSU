@@ -53,6 +53,12 @@ const VALID_PAGE_ROUTES = new Set([
   "/layanan/pelatihan/general-training",
   "/layanan/pelatihan/inhouse-training",
   "/layanan/pelatihan/exhouse-training",
+  "/lspro",
+  "/layanan/sertif-produk",
+  "/layanan/penguji",
+  "/layanan/kalibrasi",
+  "/layanan/sertif-manajemen",
+  "/layanan/pelatihan",
 ]);
 
 export default function PageHeader({

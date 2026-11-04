@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useState } from "react";
 import LocalizedText from "../../components/LocalizedText";
 import { useLanguage } from "../../context/useLanguage";
@@ -121,6 +122,17 @@ export default function ClientProductCertification() {
 
   return (
     <>
+      <SeoHead
+        title="Tracking Sertifikat Produk (SPPT SNI)"
+        description="Pelacakan status keabsahan dan masa berlaku sertifikat kesesuaian produk SPPT-SNI Lembaga Sertifikasi Produk PT Penilai Standar Uji."
+        canonical="/client/sertifikasi-produk"
+        type="service"
+        breadcrumbs={[
+          { label: "Client", href: "/client/sertifikasi-produk" },
+          { label: "Lembaga Sertifikasi Produk", href: "/client/sertifikasi-produk" },
+        ]}
+        primaryImage="/LSPro.webp"
+      />
       <PageHeader
         title="Lembaga Sertifikasi Produk"
         breadcrumbs={[

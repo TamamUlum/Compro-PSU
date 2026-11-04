@@ -1,48 +1,286 @@
 .service-detail--proses-sertif-sistem {
   --service-navy: #0b2a5b;
-  --service-text: #1d2733;
-  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 48px 0 88px;
+  --service-gold: #c5a059;
+  --service-text: #202124;
+  box-sizing: border-box;
+  margin: 40px auto 72px;
+  padding: clamp(24px, 5vw, 48px);
   color: var(--service-text);
   font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  background: #ffffff;
+  border: 1px solid #e7e9ec;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(7, 26, 64, 0.06);
 }
 
-.service-detail--proses-sertif-sistem h1 {
-  margin: 0 0 24px;
+.proses-sub__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #f1f4f8;
+  padding-bottom: 16px;
+}
+
+.proses-sub__heading-icon {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   color: var(--service-navy);
-  font-size: 2rem;
+}
+
+.proses-sub__heading h1 {
+  margin: 0;
+  color: var(--service-navy);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 750;
   line-height: 1.25;
 }
 
-.service-detail--proses-sertif-sistem p,
-.service-detail--proses-sertif-sistem li {
-  max-width: 80ch;
-  font-size: 1.0625rem;
-  line-height: 1.7;
-}
-
-.service-detail--proses-sertif-sistem p {
+.proses-sub__tagline {
   margin: 0 0 20px;
+  font-size: 1.1rem;
+  font-weight: 650;
+  color: #c5a059;
 }
 
-.service-detail--proses-sertif-sistem ul,
-.service-detail--proses-sertif-sistem ol {
-  max-width: 80ch;
-  padding-left: 22px;
+.proses-sub__content-body p {
+  margin: 0 0 16px;
+  font-size: var(--content-font-size, 1.05rem);
+  line-height: var(--content-line-height, 1.75);
+  color: #334155;
+  text-align: left;
 }
 
-.service-detail--proses-sertif-sistem li + li {
-  margin-top: 8px;
+.proses-sub__subheading {
+  margin: var(--content-section-gap, 32px) 0 16px;
+  font-size: var(--content-heading-size, 1.25rem);
+  font-weight: var(--content-heading-weight, 700);
+  color: var(--service-navy);
+  border-left: 4px solid var(--service-gold);
+  padding-left: 12px;
+  text-align: left;
+}
+
+.proses-sub__steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0 32px;
+}
+
+.proses-sub__step-item {
+  display: flex;
+  gap: 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 22px;
+  align-items: flex-start;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.proses-sub__step-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+.proses-sub__step-badge {
+  flex: 0 0 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--service-navy);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proses-sub__step-content h3 {
+  margin: 0 0 6px;
+  font-size: 1.08rem;
+  color: var(--service-navy);
+  font-weight: 700;
+}
+
+.proses-sub__step-content p {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  color: #475569;
+  text-align: left !important;
+}
+
+/* Consultation & CTA Box */
+.proses-sub__consultation {
+  margin-top: 36px;
+  padding: clamp(24px, 4vw, 36px);
+  background: linear-gradient(135deg, #071a40 0%, #0d285d 100%);
+  border-radius: 14px;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(7, 26, 64, 0.15);
+}
+
+.proses-sub__consultation-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.proses-sub__consultation-icon {
+  width: 24px;
+  height: 24px;
+  color: #f1c40f;
+  flex-shrink: 0;
+}
+
+.proses-sub__consultation-heading h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.proses-sub__consultation p {
+  margin: 0 0 20px;
+  color: #e2e8f0;
+  font-size: 1rem;
+  line-height: 1.65;
+  text-align: left;
+}
+
+.proses-sub__cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+.proses-sub__btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #25d366;
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 650;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.proses-sub__btn-whatsapp:hover {
+  background: #20ba5a;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4);
+  transform: translateY(-1px);
+}
+
+.proses-sub__btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.proses-sub__btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Related Links */
+.proses-sub__related {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid #e7e9ec;
+}
+
+.proses-sub__related h3 {
+  margin: 0 0 16px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--service-navy);
+}
+
+.proses-sub__related-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.proses-sub__related-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.proses-sub__related-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.proses-sub__related-title {
+  font-weight: 700;
+  color: var(--service-navy);
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.proses-sub__related-desc {
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.45;
 }
 
 @media (max-width: 720px) {
   .service-detail--proses-sertif-sistem {
-    padding: 32px 0 56px;
+    margin: 24px auto 48px;
+    padding: 20px 16px;
   }
 
-  .service-detail--proses-sertif-sistem h1 {
-    font-size: 1.5rem;
+  .proses-sub__step-item {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .proses-sub__step-badge {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+
+  .proses-sub__content-body p {
+    text-align: left;
+  }
+
+  .proses-sub__cta-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .proses-sub__btn-whatsapp,
+  .proses-sub__btn-secondary {
+    justify-content: center;
   }
 }

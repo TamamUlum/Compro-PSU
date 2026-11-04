@@ -1,4 +1,5 @@
 import PageHeader from "../../components/PageHeader";
+import SeoHead from "../../components/SeoHead";
 import { useState } from "react";
 import LocalizedText from "../../components/LocalizedText";
 import { useLanguage } from "../../context/useLanguage";
@@ -121,6 +122,17 @@ export default function ClientManagementSystemCertification() {
 
   return (
     <>
+      <SeoHead
+        title="Tracking Sertifikat Sistem Manajemen (ISO)"
+        description="Pelacakan keabsahan dan status sertifikat sistem manajemen mutu ISO 9001, ISO 14001, dan ISO 22000 PT Penilai Standar Uji."
+        canonical="/client/sertifikasi-sistem-manajemen"
+        type="service"
+        breadcrumbs={[
+          { label: "Client", href: "/client/sertifikasi-sistem-manajemen" },
+          { label: "Lembaga Sertifikasi Sistem Manajemen", href: "/client/sertifikasi-sistem-manajemen" },
+        ]}
+        primaryImage="/sistem_manajemen_mutu.webp"
+      />
       <PageHeader
         title="Lembaga Sertifikasi Sistem Manajemen"
         breadcrumbs={[

@@ -80,10 +80,9 @@
   padding: 8px 0;
   counter-increment: ketentuan;
   color: var(--service-text);
-  font-size: 1rem;
-  line-height: 1.75;
-  text-align: justify;
-  text-justify: inter-word;
+  font-size: var(--content-font-size, 1rem);
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
 }
 
 .hak-kewajiban__list li::before {
@@ -104,10 +103,9 @@
 .hak-kewajiban__notice p {
   margin: 10px 0 0;
   color: var(--service-muted);
-  font-size: 1rem;
-  line-height: 1.75;
-  text-align: justify;
-  text-justify: inter-word;
+  font-size: var(--content-font-size, 1rem);
+  line-height: var(--content-line-height, 1.75);
+  text-align: left;
 }
 
 @media (max-width: 720px) {
