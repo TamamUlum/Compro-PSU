@@ -462,10 +462,9 @@ async function runTestSuite() {
     `Status: ${htmlUploadRes.status}, Message: ${htmlUploadRes.json?.message}`
   );
 
-  // 5.4 Upload file PNG valid (1x1 pixel PNG)
-  // PNG valid: 8 bytes magic header + IHDR chunk + IDAT chunk + IEND chunk
+  // 5.4 Upload file PNG valid
   const valid1x1Png = Buffer.from(
-    "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000a49444154789c63000100000500010d0a2d000000000049454e44ae426082",
+    "89504e470d0a1a0a0000000d494844520000000200000002080600000072b60d240000000970485973000003e8000003e801b57b526b0000001149444154089963f8cfc0f01f8419600c0047ca07f979b47dd20000000049454e44ae426082",
     "hex"
   );
   const validPngDataUri = `data:image/png;base64,${valid1x1Png.toString("base64")}`;

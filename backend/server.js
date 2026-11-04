@@ -9,11 +9,31 @@ try {
 } catch {
   mysql = null;
 }
+let sharp;
+try {
+  sharp = require("sharp");
+} catch {
+  sharp = null;
+}
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
-app.set("trust proxy", 1);
+
+// Konfigurasi Topologi Trusted Proxy (SEC-004)
+// Menghilangkan kerentanan spoofing X-Forwarded-For dengan hanya mempercayai proxy terdaftar
+const rawTrustProxy = process.env.TRUST_PROXY;
+if (!rawTrustProxy || rawTrustProxy.trim() === "false") {
+  // Direct connection (tanpa reverse proxy yang dipercaya)
+  app.set("trust proxy", false);
+} else if (rawTrustProxy.trim() === "true") {
+  app.set("trust proxy", true);
+} else if (!isNaN(Number(rawTrustProxy.trim()))) {
+  app.set("trust proxy", Number(rawTrustProxy.trim()));
+} else {
+  // Loopback atau daftar subnet/IP yang dipercaya (contoh: "loopback", "127.0.0.1")
+  app.set("trust proxy", rawTrustProxy.trim());
+}
 const PORT = Number(process.env.PORT) || 5000;
 
 // Validasi fail-closed JWT_SECRET: Harus disetel di .env dan memiliki panjang minimal 32 karakter
@@ -587,25 +607,38 @@ function validateEmail(email) {
 }
 
 // ============================================================================
-// SISTEM RATE LIMITING CERDAS & ANDAL (TANPA DEPENDENCY EKSTERNAL)
+// SISTEM RATE LIMITING CERDAS & ANDAL (SEC-004)
 // ============================================================================
+// Menggunakan req.ip yang dihitung Express secara aman sesuai konfigurasi trust proxy.
+// Menghapus parsing mentah req.headers["x-forwarded-for"] untuk mencegah IP spoofing.
 function getClientIp(req) {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.trim()) {
-    return forwarded.split(",")[0].trim();
+  let ip = req.ip || req.socket?.remoteAddress || "127.0.0.1";
+  if (typeof ip === "string" && ip.startsWith("::ffff:")) {
+    ip = ip.slice(7);
   }
-  return req.socket?.remoteAddress || req.ip || "127.0.0.1";
+  return ip;
 }
 
-const loginFailuresMap = new Map();
+// Konfigurasi Ambang Batas Rate Limiting dari Environment (dengan default yang aman)
+const AUTH_FAIL_LIMIT_ACCOUNT = Math.max(1, Number(process.env.AUTH_FAIL_LIMIT_ACCOUNT) || 5);
+const AUTH_FAIL_LIMIT_IP = Math.max(1, Number(process.env.AUTH_FAIL_LIMIT_IP) || 20);
+const AUTH_FAIL_WINDOW_MINUTES = Math.max(1, Number(process.env.AUTH_FAIL_WINDOW_MINUTES) || 15);
+const AUTH_FAIL_WINDOW_MS = AUTH_FAIL_WINDOW_MINUTES * 60 * 1000;
+
+// State Rate Limit (Tingkat 1: Akun per IP, Tingkat 2: Global per IP untuk proteksi Password Spraying)
+const loginFailuresAccountMap = new Map();
+const loginFailuresIpMap = new Map();
 const generalRateLimitMap = new Map();
 const uploadRateLimitMap = new Map();
 
 // Pembersihan berkala memori rate limit setiap 5 menit
 setInterval(() => {
   const now = Date.now();
-  for (const [k, v] of loginFailuresMap.entries()) {
-    if (now > v.resetAt) loginFailuresMap.delete(k);
+  for (const [k, v] of loginFailuresAccountMap.entries()) {
+    if (now > v.resetAt) loginFailuresAccountMap.delete(k);
+  }
+  for (const [k, v] of loginFailuresIpMap.entries()) {
+    if (now > v.resetAt) loginFailuresIpMap.delete(k);
   }
   for (const [k, v] of generalRateLimitMap.entries()) {
     if (now > v.resetAt) generalRateLimitMap.delete(k);
@@ -615,19 +648,42 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000).unref();
 
+/**
+ * Two-Tier Auth Rate Limiter:
+ * 1. Global IP Limiter: Mencegah Password Spraying (banyak username berbeda dari 1 IP)
+ * 2. Account-Specific Limiter: Mencegah Brute-Force terhadap 1 akun tertentu
+ */
 function authRateLimiter(req, res, next) {
   const clientIp = getClientIp(req);
-  const username = String(req.body?.username || "").trim().toLowerCase();
-  const key = `auth_${clientIp}_${username || "anon"}`;
+  const normalizedUsername = String(req.body?.username || "").trim().toLowerCase();
+  const accountKey = `auth_acc_${clientIp}_${normalizedUsername || "anon"}`;
+  const ipKey = `auth_ip_${clientIp}`;
   const now = Date.now();
-  const record = loginFailuresMap.get(key);
 
-  if (record && record.failures >= 5 && now < record.resetAt) {
-    const retryAfterSeconds = Math.ceil((record.resetAt - now) / 1000);
+  // Tier 1 Check: Global IP Lockout (Mendeteksi Password Spraying)
+  const ipRecord = loginFailuresIpMap.get(ipKey);
+  if (ipRecord && ipRecord.failures >= AUTH_FAIL_LIMIT_IP && now < ipRecord.resetAt) {
+    const retryAfterSeconds = Math.ceil((ipRecord.resetAt - now) / 1000);
     res.setHeader("Retry-After", retryAfterSeconds);
-    res.setHeader("X-RateLimit-Limit", 5);
+    res.setHeader("X-RateLimit-Limit", AUTH_FAIL_LIMIT_IP);
     res.setHeader("X-RateLimit-Remaining", 0);
-    res.setHeader("X-RateLimit-Reset", Math.ceil(record.resetAt / 1000));
+    res.setHeader("X-RateLimit-Reset", Math.ceil(ipRecord.resetAt / 1000));
+    return res.status(429).json({
+      success: false,
+      rateLimited: true,
+      message: `Terlalu banyak percobaan login gagal dari alamat IP Anda. Silakan coba kembali dalam ${Math.ceil(retryAfterSeconds / 60)} menit.`,
+      retryAfterSeconds,
+    });
+  }
+
+  // Tier 2 Check: Account-Specific Lockout (Mencegah Single-Account Brute-Force)
+  const accRecord = loginFailuresAccountMap.get(accountKey);
+  if (accRecord && accRecord.failures >= AUTH_FAIL_LIMIT_ACCOUNT && now < accRecord.resetAt) {
+    const retryAfterSeconds = Math.ceil((accRecord.resetAt - now) / 1000);
+    res.setHeader("Retry-After", retryAfterSeconds);
+    res.setHeader("X-RateLimit-Limit", AUTH_FAIL_LIMIT_ACCOUNT);
+    res.setHeader("X-RateLimit-Remaining", 0);
+    res.setHeader("X-RateLimit-Reset", Math.ceil(accRecord.resetAt / 1000));
     return res.status(429).json({
       success: false,
       rateLimited: true,
@@ -638,22 +694,41 @@ function authRateLimiter(req, res, next) {
 
   // Hook res.on("finish") untuk menghitung kegagalan secara akurat
   res.on("finish", () => {
-    // Login berhasil (HTTP 200) -> Reset kegagalan
+    // Login berhasil (HTTP 200) -> Reset kegagalan pada akun tersebut
     if (res.statusCode === 200) {
-      loginFailuresMap.delete(key);
+      loginFailuresAccountMap.delete(accountKey);
       return;
     }
-    // Login gagal (HTTP 401, 400) -> Tambah penghitung kegagalan
+
+    // Login gagal (HTTP 401, 400) -> Tambah penghitung kegagalan pada kedua tingkatan
     if (res.statusCode === 401 || res.statusCode === 400) {
       const currentNow = Date.now();
-      const state = loginFailuresMap.get(key) || { failures: 0, resetAt: currentNow + 15 * 60 * 1000 };
-      if (currentNow >= state.resetAt) {
-        state.failures = 1;
-        state.resetAt = currentNow + 15 * 60 * 1000;
+
+      // Tingkat 2: Penalti Akun
+      const accState = loginFailuresAccountMap.get(accountKey) || {
+        failures: 0,
+        resetAt: currentNow + AUTH_FAIL_WINDOW_MS,
+      };
+      if (currentNow >= accState.resetAt) {
+        accState.failures = 1;
+        accState.resetAt = currentNow + AUTH_FAIL_WINDOW_MS;
       } else {
-        state.failures += 1;
+        accState.failures += 1;
       }
-      loginFailuresMap.set(key, state);
+      loginFailuresAccountMap.set(accountKey, accState);
+
+      // Tingkat 1: Penalti IP Global (Tangkap Password Spraying)
+      const ipState = loginFailuresIpMap.get(ipKey) || {
+        failures: 0,
+        resetAt: currentNow + AUTH_FAIL_WINDOW_MS,
+      };
+      if (currentNow >= ipState.resetAt) {
+        ipState.failures = 1;
+        ipState.resetAt = currentNow + AUTH_FAIL_WINDOW_MS;
+      } else {
+        ipState.failures += 1;
+      }
+      loginFailuresIpMap.set(ipKey, ipState);
     }
   });
 
@@ -792,6 +867,90 @@ function hasDangerousScriptSignature(buf) {
   ];
 
   return dangerousPatterns.some((pattern) => combined.includes(pattern));
+}
+
+// ============================================================================
+// PEMROSESAN & RE-ENCODING GAMBAR RASTER AMAN (SEC-002: SHARP INTEGRATION)
+// ============================================================================
+const MAX_IMAGE_WIDTH = 4096;
+const MAX_IMAGE_HEIGHT = 4096;
+const MAX_IMAGE_PIXELS = 16 * 1024 * 1024; // 16 Megapixels
+
+async function processAndReencodeRasterImage(buffer, requestedExt) {
+  if (!sharp) {
+    throw new Error("Library pemrosesan gambar (Sharp) tidak tersedia pada server.");
+  }
+
+  // 1. Decode raster menggunakan Sharp dengan alokasi batas piksel input
+  // limitInputPixels mencegah eksploitasi decompression bomb / pixel flood
+  const image = sharp(buffer, {
+    failOnError: true,
+    limitInputPixels: MAX_IMAGE_PIXELS,
+  });
+
+  const metadata = await image.metadata();
+
+  // 2. Validasi format biner hasil decode Sharp (hanya raster jpeg, png, webp)
+  const allowedFormats = ["jpeg", "png", "webp"];
+  const detectedFormat = (metadata.format || "").toLowerCase();
+  if (!allowedFormats.includes(detectedFormat)) {
+    throw new Error("Format gambar terdeteksi tidak diizinkan. Hanya JPEG, PNG, dan WebP yang diterima.");
+  }
+
+  // 3. Validasi batas dimensi & total piksel (Max 4096 x 4096, Max 16 MP)
+  const width = metadata.width || 0;
+  const height = metadata.height || 0;
+  const totalPixels = width * height;
+
+  if (width < 1 || height < 1) {
+    throw new Error("Dimensi gambar tidak valid.");
+  }
+
+  if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT || totalPixels > MAX_IMAGE_PIXELS) {
+    throw new Error(
+      `Dimensi gambar melampaui batas keamanan maksimal (${width}x${height} px, ${Math.round(totalPixels / 1000000)} MP). Maksimal yang diizinkan adalah ${MAX_IMAGE_WIDTH}x${MAX_IMAGE_HEIGHT} piksel (16 MP).`
+    );
+  }
+
+  // 4. Normalisasi format target re-encode
+  let targetFormat = requestedExt === "jpeg" || requestedExt === "jpg" ? "jpg" : requestedExt;
+  if (detectedFormat === "jpeg") targetFormat = "jpg";
+  else if (detectedFormat === "png") targetFormat = "png";
+  else if (detectedFormat === "webp") targetFormat = "webp";
+
+  let reencodedBuffer;
+  let finalMimeType;
+
+  // 5. Re-encode dari raw decoded bitmap & otomatis hilangkan (strip) semua metadata EXIF/IPTC/XMP
+  if (targetFormat === "jpg") {
+    reencodedBuffer = await image
+      .rotate()
+      .jpeg({ quality: 85, mozjpeg: true })
+      .toBuffer();
+    finalMimeType = "image/jpeg";
+  } else if (targetFormat === "png") {
+    reencodedBuffer = await image
+      .rotate()
+      .png({ compressionLevel: 8 })
+      .toBuffer();
+    finalMimeType = "image/png";
+  } else if (targetFormat === "webp") {
+    reencodedBuffer = await image
+      .rotate()
+      .webp({ quality: 85 })
+      .toBuffer();
+    finalMimeType = "image/webp";
+  } else {
+    throw new Error("Format target gambar tidak didukung.");
+  }
+
+  return {
+    reencodedBuffer,
+    format: targetFormat,
+    mimeType: finalMimeType,
+    width,
+    height,
+  };
 }
 
 function base64UrlEncode(input) {
@@ -2266,17 +2425,33 @@ app.post("/api/upload-gambar", requireAdminAuth, uploadRateLimiter, async (req, 
       });
     }
 
+    // Decode, Validasi Dimensi & Re-Encode Raster menggunakan Sharp (SEC-002)
+    // Menghancurkan decompression bomb, payload polyglot tersembunyi, dan membersihkan metadata EXIF/IPTC
+    let processedResult;
+    try {
+      processedResult = await processAndReencodeRasterImage(buffer, ext);
+    } catch (procErr) {
+      return res.status(400).json({
+        success: false,
+        message: procErr.message || "File gambar gagal diproses atau korup.",
+      });
+    }
+
+    const finalBuffer = processedResult.reencodedBuffer;
+    const finalExt = processedResult.format;
+    const finalMime = processedResult.mimeType;
+
     // Gunakan UUID v4 acak dari server untuk nama file (nama dari pengguna tidak digunakan pada path disk)
     const randomUuid = crypto.randomUUID();
-    const finalName = `${randomUuid}.${ext}`;
+    const finalName = `${randomUuid}.${finalExt}`;
 
     fs.mkdirSync(publicNewsDir, { recursive: true });
-    fs.writeFileSync(path.join(publicNewsDir, finalName), buffer);
+    fs.writeFileSync(path.join(publicNewsDir, finalName), finalBuffer);
 
     if (fs.existsSync(distNewsDir)) {
       try {
         fs.mkdirSync(distNewsDir, { recursive: true });
-        fs.writeFileSync(path.join(distNewsDir, finalName), buffer);
+        fs.writeFileSync(path.join(distNewsDir, finalName), finalBuffer);
       } catch {
         // Abaikan kegagalan salin dist
       }
@@ -2294,8 +2469,8 @@ app.post("/api/upload-gambar", requireAdminAuth, uploadRateLimiter, async (req, 
       image_url: imageUrl,
       category: category || "Artikel Upload",
       alt_text: alt_text || cleanTitle,
-      file_size: buffer.length,
-      mime_type: `image/${ext === "jpg" ? "jpeg" : ext}`,
+      file_size: finalBuffer.length,
+      mime_type: finalMime,
       uploaded_by: req.adminUser?.full_name || req.adminUser?.username || "Admin PSU",
     });
 
@@ -2303,7 +2478,7 @@ app.post("/api/upload-gambar", requireAdminAuth, uploadRateLimiter, async (req, 
       req.adminUser?.username || "admin",
       "UPLOAD_MEDIA",
       cleanTitle,
-      `Mengunggah foto baru ke Galeri: ${imageUrl} (${Math.round(buffer.length / 1024)} KB)`
+      `Mengunggah foto baru ke Galeri: ${imageUrl} (${Math.round(finalBuffer.length / 1024)} KB, ${processedResult.width}x${processedResult.height} px)`
     );
 
     return res.json({
