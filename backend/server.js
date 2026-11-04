@@ -3,6 +3,7 @@ const cors = require("cors");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
+const net = require("net");
 let mysql;
 try {
   mysql = require("mysql2/promise");
@@ -47,46 +48,119 @@ const CLOUDFLARE_PROXY_CIDRS = [
   "2c0f:f248::/32",
 ];
 
+// Validasi format IPv4/IPv6 tunggal atau notasi CIDR (ip/mask)
+function isValidIpOrCidr(str) {
+  if (typeof str !== "string") return false;
+  const trimmed = str.trim();
+  if (!trimmed) return false;
+
+  const ipType = net.isIP(trimmed);
+  if (ipType === 4 || ipType === 6) return true;
+
+  const parts = trimmed.split("/");
+  if (parts.length === 2) {
+    const baseIp = parts[0].trim();
+    const prefixStr = parts[1].trim();
+    const baseType = net.isIP(baseIp);
+
+    if (/^\d+$/.test(prefixStr)) {
+      const prefix = Number(prefixStr);
+      if (baseType === 4 && prefix >= 0 && prefix <= 32) return true;
+      if (baseType === 6 && prefix >= 0 && prefix <= 128) return true;
+    }
+  }
+
+  return false;
+}
+
 function configureTrustProxy(expressApp) {
   const envVal = (process.env.TRUST_PROXY || "false").trim();
   const lowerVal = envVal.toLowerCase();
 
-  if (lowerVal === "false" || lowerVal === "none" || lowerVal === "0") {
+  // TASK 1: Penolakan eksplisit konfigurasi tidak aman (fail-closed)
+  if (lowerVal === "true") {
+    throw new Error(
+      "[FATAL SECURITY CONFIGURATION ERROR] TRUST_PROXY='true' is strictly prohibited. It permits universal forwarded-header spoofing. Specify 'false', 'loopback', 'cloudflare', 'private', or explicit trusted IP/CIDR."
+    );
+  }
+
+  if (!isNaN(Number(envVal))) {
+    throw new Error(
+      `[FATAL SECURITY CONFIGURATION ERROR] Numeric hop count configuration in TRUST_PROXY ('${envVal}') is strictly prohibited. It permits direct-connection bypass. Specify 'loopback', 'cloudflare', or explicit IP/CIDR.`
+    );
+  }
+
+  if (lowerVal === "false" || lowerVal === "none" || lowerVal === "off") {
     // Direct connection: Forwarded headers TIDAK DIPERCAYA
     expressApp.set("trust proxy", false);
-  } else if (lowerVal === "loopback") {
+    expressApp.set("trust cloudflare", false);
+    return;
+  }
+
+  if (lowerVal === "loopback") {
     // Topologi reverse proxy lokal (Apache / Nginx / cPanel Passenger pada 127.0.0.1)
     expressApp.set("trust proxy", "loopback");
-  } else if (lowerVal === "private" || lowerVal === "lan") {
-    // Jaringan privat internal (Docker / LAN / Kubernetes)
+    expressApp.set("trust cloudflare", false);
+    return;
+  }
+
+  if (lowerVal === "private") {
+    // Topologi jaringan privat internal (Docker / LAN / Kubernetes)
+    console.warn(
+      "[SECURITY NOTICE] TRUST_PROXY='private' trusts all RFC1918 private subnets. Ensure your internal network/VPC does not host untrusted workloads or sibling containers."
+    );
     expressApp.set("trust proxy", ["loopback", "linklocal", "uniquelocal"]);
-  } else if (lowerVal === "cloudflare") {
+    expressApp.set("trust cloudflare", false);
+    return;
+  }
+
+  if (lowerVal === "cloudflare") {
     // Topologi Cloudflare CDN: Hanya percaya loopback lokal + rentang IP resmi Cloudflare
     expressApp.set("trust proxy", ["loopback", ...CLOUDFLARE_PROXY_CIDRS]);
-  } else if (lowerVal === "true") {
-    // Peringatan keamanan: trust proxy: true mempercayai SEMUA hop tanpa verifikasi
-    console.warn("[SECURITY WARNING] TRUST_PROXY disetel ke 'true'. Seluruh forwarded header dipercaya.");
-    expressApp.set("trust proxy", true);
-  } else if (!isNaN(Number(envVal))) {
-    // Fixed hop count: Berikan peringatan agar menggunakan IP/CIDR spesifik
-    console.warn(`[SECURITY ADVISORY] TRUST_PROXY menggunakan jumlah hop tetap (${envVal}). Disarankan menggunakan IP/CIDR (misal: 'loopback' atau IP Nginx/Apache) untuk mencegah bypass koneksi langsung.`);
-    expressApp.set("trust proxy", Number(envVal));
-  } else {
-    // Daftar IP atau subnet CIDR spesifik yang dipisahkan koma
-    const ipList = envVal.split(",").map((s) => s.trim()).filter(Boolean);
-    const finalProxies = [];
-    for (const item of ipList) {
-      if (item.toLowerCase() === "cloudflare") {
-        finalProxies.push(...CLOUDFLARE_PROXY_CIDRS);
-      } else {
-        finalProxies.push(item);
-      }
-    }
-    expressApp.set("trust proxy", finalProxies);
+    expressApp.set("trust cloudflare", true);
+    return;
   }
+
+  // Daftar IP atau subnet CIDR spesifik yang dipisahkan koma
+  const ipList = envVal.split(",").map((s) => s.trim()).filter(Boolean);
+  if (ipList.length === 0) {
+    throw new Error(
+      "[FATAL SECURITY CONFIGURATION ERROR] Empty TRUST_PROXY configuration provided."
+    );
+  }
+
+  const finalProxies = [];
+  let hasCloudflare = false;
+
+  for (const item of ipList) {
+    const itemLower = item.toLowerCase();
+    if (itemLower === "cloudflare") {
+      finalProxies.push(...CLOUDFLARE_PROXY_CIDRS);
+      hasCloudflare = true;
+    } else if (itemLower === "loopback") {
+      finalProxies.push("loopback");
+    } else if (isValidIpOrCidr(item)) {
+      finalProxies.push(item);
+    } else {
+      throw new Error(
+        `[FATAL SECURITY CONFIGURATION ERROR] Invalid or malformed entry in TRUST_PROXY: '${item}'. Must be a valid IPv4/IPv6 address, CIDR notation (e.g. 10.0.0.0/8), or supported keyword ('loopback', 'cloudflare').`
+      );
+    }
+  }
+
+  expressApp.set("trust proxy", finalProxies);
+  expressApp.set("trust cloudflare", hasCloudflare);
 }
 
-configureTrustProxy(app);
+try {
+  configureTrustProxy(app);
+} catch (err) {
+  console.error("====================================================================");
+  console.error(err.message);
+  console.error("Server dimatikan secara aman (fail-closed) untuk mencegah kerentanan IP spoofing.");
+  console.error("====================================================================");
+  process.exit(1);
+}
 const PORT = Number(process.env.PORT) || 5000;
 const HOST = process.env.HOST || "0.0.0.0";
 
@@ -665,9 +739,12 @@ function validateEmail(email) {
 // ============================================================================
 // Menggunakan req.ip yang dihitung Express secara aman sesuai konfigurasi trust proxy.
 // Menghapus parsing mentah req.headers["x-forwarded-for"] untuk mencegah IP spoofing.
-// Header cf-connecting-ip HANYA dipercaya jika socket terbukti dari trusted proxy (req.ips.length > 0).
+// Header cf-connecting-ip HANYA dipercaya jika:
+// 1. Aplikasi secara eksplisit dikonfigurasi untuk mempercayai Cloudflare (trust cloudflare === true)
+// 2. Socket fisik terbukti berasal dari trusted proxy (req.ips.length > 0)
 function getClientIp(req) {
-  if (req.ips && req.ips.length > 0) {
+  const isCloudflareTrusted = req.app?.get("trust cloudflare") === true;
+  if (isCloudflareTrusted && req.ips && req.ips.length > 0) {
     const cfIp = req.headers["cf-connecting-ip"];
     if (typeof cfIp === "string" && cfIp.trim()) {
       let cleanedCfIp = cfIp.trim();
@@ -3606,5 +3683,6 @@ module.exports = {
   initDatabase,
   configureTrustProxy,
   getClientIp,
+  isValidIpOrCidr,
   CLOUDFLARE_PROXY_CIDRS,
 };

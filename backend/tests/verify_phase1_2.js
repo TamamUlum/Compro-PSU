@@ -355,24 +355,22 @@ async function runTests() {
     );
   }
 
-  // SEC-004-TP-08: Fixed hop count advisory warning logged
+  // SEC-004-TP-08: Fixed hop count must be strictly rejected (Phase 1.3 Hardening)
   {
-    let warnLogged = false;
-    const originalWarn = console.warn;
-    console.warn = (msg) => {
-      if (typeof msg === "string" && msg.includes("SECURITY ADVISORY")) {
-        warnLogged = true;
-      }
-    };
-
-    createTestApp("1");
-    console.warn = originalWarn;
+    let rejected = false;
+    let errorMsg = "";
+    try {
+      createTestApp("1");
+    } catch (err) {
+      rejected = true;
+      errorMsg = err.message;
+    }
 
     recordTest(
       "SEC-004-TP-08",
-      "Fixed hop count triggers explicit security advisory warning",
-      warnLogged,
-      `Advisory warning captured when TRUST_PROXY is set to numeric value ('1')`
+      "Fixed hop count triggers strict rejection (fail-closed)",
+      rejected && errorMsg.includes("Numeric hop count configuration"),
+      `Numeric hop count '1' threw expected error: ${errorMsg}`
     );
   }
 
