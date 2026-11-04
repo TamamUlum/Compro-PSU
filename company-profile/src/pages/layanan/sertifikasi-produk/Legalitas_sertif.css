@@ -1,0 +1,109 @@
+.service-detail--legalitas-sertif {
+  --service-navy: #0b2a5b;
+  --service-text: #1d2733;
+  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 0 88px;
+  color: var(--service-text);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+.service-detail--legalitas-sertif h1 {
+  margin: 0 0 24px;
+  color: var(--service-navy);
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+.service-detail--legalitas-sertif p,
+.service-detail--legalitas-sertif li {
+  max-width: 80ch;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+.service-detail--legalitas-sertif p {
+  margin: 0 0 20px;
+}
+
+.service-detail--legalitas-sertif ul,
+.service-detail--legalitas-sertif ol {
+  max-width: 80ch;
+  padding-left: 22px;
+}
+
+.service-detail--legalitas-sertif li + li {
+  margin-top: 8px;
+}
+
+.service-detail--legalitas-sertif .legalitas-document-content {
+  margin-top: 28px;
+}
+
+.service-detail--legalitas-sertif .legalitas-document {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  border: 1px solid #dfe4ec;
+  border-radius: 6px;
+  background: #f7f9fc;
+  text-align: center;
+}
+
+.service-detail--legalitas-sertif .legalitas-document__link {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  cursor: zoom-in;
+}
+
+.service-detail--legalitas-sertif .legalitas-document__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 82vh;
+  object-fit: contain;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(29, 39, 51, 0.12);
+}
+
+.service-detail--legalitas-sertif .legalitas-document__pdf {
+  display: block;
+  width: 100%;
+  height: min(82vh, 1100px);
+  min-height: 640px;
+  border: 0;
+  background: #fff;
+}
+
+.service-detail--legalitas-sertif .legalitas-document__caption {
+  margin-top: 12px;
+  color: #5c6878;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .service-detail--legalitas-sertif {
+    padding: 32px 0 56px;
+  }
+
+  .service-detail--legalitas-sertif h1 {
+    font-size: 1.5rem;
+  }
+
+  .service-detail--legalitas-sertif .legalitas-document-content {
+    margin-top: 20px;
+  }
+
+  .service-detail--legalitas-sertif .legalitas-document {
+    padding: 8px;
+  }
+
+  .service-detail--legalitas-sertif .legalitas-document__pdf {
+    height: 72vh;
+    min-height: 480px;
+  }
+}

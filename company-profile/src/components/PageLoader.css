@@ -1,0 +1,34 @@
+.page-loader {
+  display: flex;
+  min-height: 55vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #0b2a5b;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.page-loader__spinner,
+.loading-image__spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid rgba(11, 42, 91, 0.16);
+  border-top-color: #0b2a5b;
+  border-radius: 50%;
+  animation: page-loader-spin 800ms linear infinite;
+}
+
+@keyframes page-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader__spinner,
+  .loading-image__spinner {
+    animation-duration: 1800ms;
+  }
+}

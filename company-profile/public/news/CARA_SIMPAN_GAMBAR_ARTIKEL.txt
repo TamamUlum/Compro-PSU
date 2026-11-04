@@ -1,0 +1,2 @@
+Simpan gambar artikel baru Anda di dalam folder company-profile/public/news/ (misal: berita-baru.webp),
+lalu isi kolom image_url di tabel MySQL `artikel` dengan '/news/berita-baru.webp'.

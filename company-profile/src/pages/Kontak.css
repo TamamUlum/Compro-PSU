@@ -1,0 +1,440 @@
+.contact-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.contact-section {
+  --contact-navy: #0b2a5b;
+  --contact-navy-light: #174080;
+  --contact-tint: #e6edf8;
+  --contact-line: #dfe4ec;
+  --contact-text: #4a5565;
+
+  padding: 48px 20px 60px;
+  background-color: #ffffff;
+}
+
+.contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.contact-benefits-title {
+  margin: 0 auto 32px;
+  color: #172b4d;
+  font-size: clamp(1.5rem, 2.8vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.contact-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 36px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--contact-line);
+  list-style: none;
+}
+
+.contact-benefit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 20px;
+}
+
+.contact-benefit + .contact-benefit {
+  border-left: 1px solid #dce4f0;
+}
+
+.contact-benefit__icon {
+  display: grid;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #1769aa;
+}
+
+.contact-benefit__icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.contact-benefit__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.contact-benefit__copy strong {
+  color: #0b2a5b;
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.contact-benefit__copy small {
+  color: var(--contact-text);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.contact-card {
+  overflow: hidden;
+  border: 1px solid var(--contact-line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(11, 42, 91, 0.06);
+}
+
+.contact-card__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px;
+  background: #0b2a5b;
+  color: #fff;
+  font-size: 1.0625rem;
+  font-weight: 650;
+  line-height: 1.4;
+  box-shadow: 0 3px 0 #c49a3c;
+}
+
+.contact-card__title svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+.contact-card__title svg path {
+  fill: currentColor;
+}
+
+.contact-card__title svg circle {
+  fill: var(--contact-navy);
+  stroke: none;
+}
+
+.contact-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.contact-item__icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--contact-tint);
+  color: var(--contact-navy);
+}
+
+.contact-item__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.contact-item__body {
+  min-width: 0;
+}
+
+.contact-item h4 {
+  margin: 0 0 4px;
+  color: var(--contact-navy);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.contact-item p {
+  margin: 0;
+  color: var(--contact-text);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.contact-item a {
+  color: var(--contact-text);
+  text-decoration: none;
+}
+
+.contact-item a:hover {
+  color: var(--contact-navy);
+  text-decoration: underline;
+}
+
+.contact-maps-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 13px 16px;
+  border: 1px solid #cddcf1;
+  border-radius: 10px;
+  background: #f1f6fd;
+  color: var(--contact-navy);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.contact-maps-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.contact-maps-button:hover {
+  border-color: var(--contact-navy);
+  background: #e6effb;
+}
+
+.contact-maps-button:focus-visible {
+  outline: 2px solid var(--contact-navy);
+  outline-offset: 3px;
+}
+
+.map-container {
+  position: relative;
+  min-height: 340px;
+  overflow: hidden;
+  border: 1px solid var(--contact-line);
+  border-radius: 12px;
+}
+
+.map-container iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.contact-cta-card {
+  margin-top: 32px;
+  border-top: 3px solid #c49c24;
+  background: linear-gradient(105deg, #071a40 0%, #0a2152 48%, #16396e 100%);
+  border-radius: 14px;
+  padding: 48px 52px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 6px 24px rgba(11, 42, 91, 0.12);
+  opacity: 0;
+  transform: translateX(-60px);
+  animation: slideInFromLeft 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes slideInFromLeft {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.contact-cta-card__text h3 {
+  color: #b09b00;
+  font-size: 24px;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.contact-cta-card__text h2 {
+  color: #ffffff;
+  font-size: 30px;
+  margin: 0;
+  font-weight: 700;
+}
+
+.contact-cta-card__button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #25d366;
+  color: #ffffff;
+  min-height: 60px;
+  padding: 18px 38px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+}
+
+.contact-cta-card__button:hover {
+  background-color: #20bd5a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+.contact-cta-card__button svg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 768px) {
+  .contact-banner {
+    height: 250px;
+    overflow: hidden;
+  }
+
+  .contact-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .contact-section {
+    padding: 32px 20px 45px;
+  }
+
+  .contact-benefits-intro {
+    margin-bottom: 14px;
+  }
+
+  .contact-benefits-intro p {
+    font-size: 0.88rem;
+  }
+
+  .contact-benefits {
+    margin-bottom: 26px;
+  }
+
+  .contact-benefits-title {
+    margin-bottom: 26px;
+  }
+  .contact-benefit {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .contact-benefit__copy strong {
+    font-size: 0.88rem;
+  }
+
+  .contact-benefit__copy small {
+    font-size: 0.78rem;
+  }
+
+  .contact-card__title {
+    padding: 16px 18px;
+    font-size: 0.9375rem;
+  }
+
+  .contact-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .contact-info {
+    gap: 14px;
+  }
+
+  .contact-list {
+    gap: 12px;
+  }
+
+  .contact-item {
+    gap: 12px;
+  }
+
+  .contact-item h4 {
+    font-size: 15px;
+  }
+
+  .contact-item p {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .map-container {
+    min-height: 300px;
+  }
+
+  .contact-cta-card {
+    margin-top: 24px;
+    padding: 32px 24px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .contact-cta-card__text h3 {
+    font-size: 17px;
+  }
+
+  .contact-cta-card__text h2 {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
+  .contact-cta-card__button {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 560px) {
+  .contact-benefits {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .contact-benefit {
+    padding: 14px 4px;
+  }
+
+  .contact-benefit + .contact-benefit {
+    border-left: 0;
+    border-top: 1px solid #dce4f0;
+  }
+
+  .contact-benefit__copy strong {
+    font-size: 0.92rem;
+  }
+
+  .contact-benefit__copy small {
+    font-size: 0.8rem;
+  }
+}

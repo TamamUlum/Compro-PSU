@@ -1,0 +1,39 @@
+.page-error {
+  display: flex;
+  min-height: 55vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px 20px;
+  color: #1d2733;
+  text-align: center;
+}
+
+.page-error h1 {
+  margin: 0;
+  color: #0b2a5b;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+
+.page-error p {
+  max-width: 42rem;
+  line-height: 1.6;
+}
+
+.page-error__retry {
+  margin-top: 8px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #0b2a5b;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page-error__retry:focus-visible {
+  outline: 3px solid #b09b00;
+  outline-offset: 3px;
+}

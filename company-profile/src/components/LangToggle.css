@@ -1,0 +1,51 @@
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1.5px solid #0b2a5b;
+  border-radius: 999px;
+  background: #fff;
+  color: #0b2a5b;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  white-space: nowrap;
+}
+
+.lang-toggle:hover {
+  background: #0b2a5b;
+  color: #fff;
+}
+
+.lang-toggle img {
+  width: 18px;
+  height: 12px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.lang-toggle__arrow {
+  opacity: 0.6;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 1024px) {
+  .lang-toggle {
+    gap: 3px;
+    padding: 4px 7px;
+    font-size: 0.6875rem;
+  }
+
+  .lang-toggle img {
+    width: 14px;
+    height: 10px;
+  }
+
+  .lang-toggle__arrow {
+    font-size: 0.625rem;
+  }
+}

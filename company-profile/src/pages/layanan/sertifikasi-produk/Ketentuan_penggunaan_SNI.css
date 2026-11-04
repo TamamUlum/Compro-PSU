@@ -1,0 +1,150 @@
+.service-detail--ketentuan-penggunaan-sni {
+  --sni-navy: #0b2a5b;
+  --sni-text: #253247;
+  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 0 88px;
+  color: var(--sni-text);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+.ketentuan-sni {
+  overflow: hidden;
+  border: 1px solid #e1e6ee;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.ketentuan-sni__header {
+  padding: 16px 20px;
+  background: #0b2a5b;
+  color: #fff;
+}
+
+.ketentuan-sni__header h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+}
+
+.ketentuan-sni__header p {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.ketentuan-sni__content {
+  padding: 20px;
+}
+
+.ketentuan-sni__content h2 {
+  margin: 0 0 14px;
+  color: #17212f;
+  font-size: 1.15rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.ketentuan-sni__content > p {
+  margin: 0 0 12px;
+  color: #4c5b70;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.ketentuan-sni__document {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px;
+  border: 1px solid #dfe4ec;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.ketentuan-sni__document-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 0 0 0;
+}
+
+.ketentuan-sni__file-icon {
+  display: grid;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 8px;
+  background: #eaf0f9;
+  color: var(--sni-navy);
+  font-size: 1.2rem;
+}
+
+.ketentuan-sni__file-copy {
+  min-width: 0;
+}
+
+.ketentuan-sni__file-copy h3 {
+  margin: 0;
+  color: #17212f;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.ketentuan-sni__file-copy p {
+  margin: 4px 0 0;
+  color: #66758b;
+  font-size: 0.83rem;
+  line-height: 1.4;
+}
+
+.ketentuan-sni__download {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border-radius: 7px;
+  background: #0b2a5b;
+  color: #fff;
+  font-size: 0.94rem;
+  font-weight: 650;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+
+.ketentuan-sni__download:hover {
+  background: #174080;
+}
+
+.ketentuan-sni__download:focus-visible {
+  outline: 3px solid #9ab5dd;
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .service-detail--ketentuan-penggunaan-sni {
+    padding: 32px 0 56px;
+  }
+
+  .ketentuan-sni__header,
+  .ketentuan-sni__content {
+    padding: 16px;
+  }
+
+  .ketentuan-sni__content > p {
+    text-align: left;
+  }
+}

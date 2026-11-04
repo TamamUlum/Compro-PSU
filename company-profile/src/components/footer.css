@@ -1,0 +1,234 @@
+@import url("https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&display=swap");
+
+.footer {
+  --footer-fs-body: 15px;
+  --footer-fs-name: 18px;
+  --footer-fs-title: 15px;
+  --footer-fs-bar: 14px;
+
+  --footer-bg: #f1f3f7;
+  --footer-ink: #14233b;
+  --footer-muted: #5b6778;
+  --footer-line: #dbe0e8;
+  --footer-accent: #c98a12;
+
+  background: var(--footer-bg);
+  color: var(--footer-ink);
+  font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: var(--footer-fs-body);
+  line-height: 1.6;
+  text-align: left;
+
+  box-shadow: 0 0 0 100vmax var(--footer-bg);
+  clip-path: inset(0 -100vmax);
+}
+
+.footer__inner {
+  box-sizing: border-box;
+  width: min(1474px, calc(100% - 2 * clamp(20px, 4vw, 56px)));
+  margin: 0 auto;
+  padding: 56px 0 24px;
+}
+
+.footer__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  gap: 0 48px;
+}
+
+.footer__brand {
+  justify-self: start;
+  text-align: left;
+}
+
+.footer .footer__logo-link {
+  display: inline-block;
+  background-image: none;
+}
+
+.footer__logo {
+  display: block;
+  height: 52px;
+  width: auto;
+  margin-bottom: 16px;
+}
+
+.footer .footer__name {
+  margin: 0;
+  font-size: var(--footer-fs-name);
+  font-weight: 600;
+  color: var(--footer-ink);
+}
+
+.footer .footer__tagline {
+  margin: 2px 0 0;
+  font-size: var(--footer-fs-body);
+  color: var(--footer-muted);
+}
+
+.footer__col {
+  max-width: 340px;
+}
+
+.footer__col--center {
+  justify-self: center;
+  text-align: center;
+}
+
+.footer__col--end {
+  justify-self: end;
+  text-align: right;
+}
+
+.footer .footer__title {
+  margin: 0 0 14px;
+  font-family: inherit;
+  font-size: var(--footer-fs-title);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--footer-ink);
+}
+
+.footer .footer__list {
+  margin: 0;
+  padding: 0;
+  font-style: normal;
+  font-size: var(--footer-fs-body);
+  color: var(--footer-ink);
+}
+
+.footer .footer__list p {
+  margin: 0 0 10px;
+  font-size: inherit;
+  color: var(--footer-ink);
+}
+
+.footer .footer__list p:last-child {
+  margin-bottom: 0;
+}
+
+.footer a {
+  color: var(--footer-ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--footer-accent), var(--footer-accent));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 1.5px;
+  transition: background-size 0.2s;
+}
+
+.footer__col--end a {
+  background-position: 100% 100%;
+}
+
+.footer a:hover,
+.footer a:focus-visible {
+  background-size: 100% 1.5px;
+}
+
+.footer a:focus-visible {
+  outline: 2px solid var(--footer-ink);
+  outline-offset: 3px;
+}
+
+.footer .footer__contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer__contact-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.footer .footer__logo-link:hover,
+.footer .footer__logo-link:focus-visible {
+  background-size: 0 0;
+}
+
+.footer__bar {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--footer-line);
+}
+
+.footer .footer__bar p {
+  margin: 0;
+  font-size: var(--footer-fs-bar);
+  color: var(--footer-muted);
+}
+
+@media (max-width: 860px) {
+  .footer {
+    --footer-fs-body: 13px;
+    --footer-fs-name: 20px;
+    --footer-fs-title: 13px;
+    --footer-fs-bar: 12px;
+
+    line-height: 1.5;
+  }
+
+  .footer__inner {
+    padding: 28px 0 20px;
+  }
+
+  .footer__grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .footer__col {
+    max-width: none;
+  }
+
+  .footer__col--center,
+  .footer__col--end {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .footer__col--end a {
+    background-position: 0 100%;
+  }
+
+  .footer .footer__email {
+    font-size: 15px;
+  }
+
+  .footer .footer__title {
+    margin-bottom: 4px;
+  }
+
+  .footer .footer__list p {
+    margin-bottom: 6px;
+  }
+
+  .footer__bar {
+    margin-top: 24px;
+    padding-top: 14px;
+  }
+
+  .footer .footer__bar p {
+    padding-right: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer a {
+    transition: none;
+  }
+}
+
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+}

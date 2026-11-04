@@ -1,0 +1,219 @@
+.service-detail--keluhan-banding-sertif {
+  --service-navy: #0b2a5b;
+  --service-text: #1d2733;
+  --service-muted: #5b6878;
+  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 0 88px;
+  color: var(--service-text);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+.keluhan-banding__header {
+  margin-bottom: 34px;
+}
+
+.keluhan-banding__eyebrow {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #8a6827;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.keluhan-banding__header h1 {
+  margin: 0;
+  color: var(--service-navy);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.25;
+}
+
+.keluhan-banding__header h1 span {
+  display: block;
+}
+
+.keluhan-banding__organization {
+  margin: 12px 0 0;
+  color: var(--service-muted);
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.keluhan-banding__sections {
+  display: grid;
+  gap: 24px;
+}
+
+.keluhan-banding__card {
+  padding: clamp(22px, 4vw, 36px);
+  border: 1px solid #e3e9f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(11 42 91 / 5%);
+}
+
+.keluhan-banding__section-heading {
+  margin-bottom: 18px;
+}
+
+.keluhan-banding__section-heading h2,
+.keluhan-banding__contact-heading h2 {
+  margin: 0;
+  color: var(--service-navy);
+  font-size: 1.35rem;
+  line-height: 1.35;
+}
+
+.keluhan-banding__list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: ketentuan;
+}
+
+.keluhan-banding__list li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 14px;
+  padding: 8px 0;
+  counter-increment: ketentuan;
+  color: var(--service-text);
+  font-size: 1rem;
+  line-height: 1.75;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.keluhan-banding__list li::before {
+  content: counter(ketentuan) ".";
+  color: #9b762e;
+  font-weight: 750;
+  text-align: right;
+}
+
+.keluhan-banding__list strong {
+  color: var(--service-navy);
+}
+
+.keluhan-banding__contact {
+  margin-top: 24px;
+}
+
+.keluhan-banding__contact-heading {
+  margin-bottom: 18px;
+}
+
+.keluhan-banding__contact-heading h2 {
+  margin: 0;
+  color: var(--service-navy);
+  font-size: 1.35rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.keluhan-banding__contact-heading p {
+  margin: 8px 0 0;
+  color: var(--service-text);
+  line-height: 1.7;
+  text-align: left;
+}
+
+.keluhan-banding__commitment {
+  margin: 16px 0 0;
+  color: var(--service-text);
+  font-size: 1rem;
+  line-height: 1.75;
+  text-align: left;
+}
+
+.keluhan-banding__contact-details {
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid #e5eaf1;
+  border-radius: 12px;
+  background: #f7f9fc;
+  font-style: normal;
+}
+
+.keluhan-banding__contact-name {
+  margin: 0 0 8px;
+  color: var(--service-navy);
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.keluhan-banding__contact-details p {
+  display: grid;
+  grid-template-columns: minmax(120px, 170px) minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 5px 0;
+  color: var(--service-text);
+  font-size: 0.98rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.keluhan-banding__contact-details strong {
+  color: var(--service-navy);
+  font-weight: 650;
+}
+
+.keluhan-banding__contact-details a {
+  color: var(--service-navy);
+  font-weight: 600;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.keluhan-banding__contact-details a:hover {
+  color: #31558a;
+}
+
+@media (max-width: 720px) {
+  .service-detail--keluhan-banding-sertif {
+    padding: 32px 0 56px;
+  }
+
+  .keluhan-banding__header {
+    margin-bottom: 24px;
+  }
+
+  .keluhan-banding__card {
+    border-radius: 12px;
+  }
+
+  .keluhan-banding__section-heading h2,
+  .keluhan-banding__contact-heading h2 {
+    font-size: 1.18rem;
+  }
+
+  .keluhan-banding__list li {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 10px;
+    font-size: 0.96rem;
+    line-height: 1.7;
+  }
+
+  .keluhan-banding__contact-heading h2 {
+    font-size: 1.18rem;
+  }
+
+  .keluhan-banding__contact-details p {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+}

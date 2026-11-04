@@ -1,0 +1,137 @@
+.service-detail--hak-kewajiban-klien-sertif {
+  --service-navy: #0b2a5b;
+  --service-text: #1d2733;
+  --service-muted: #5b6878;
+  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 0 88px;
+  color: var(--service-text);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+.hak-kewajiban__header {
+  margin-bottom: 34px;
+}
+
+.hak-kewajiban__eyebrow {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #8a6827;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hak-kewajiban__header h1 {
+  margin: 0;
+  color: var(--service-navy);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.25;
+}
+
+.hak-kewajiban__organization {
+  margin: 10px 0 0;
+  color: var(--service-muted);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.hak-kewajiban__sections {
+  display: grid;
+  gap: 24px;
+}
+
+.hak-kewajiban__card {
+  padding: clamp(22px, 4vw, 36px);
+  border: 1px solid #e3e9f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(11 42 91 / 5%);
+}
+
+.hak-kewajiban__section-heading {
+  margin-bottom: 18px;
+}
+
+.hak-kewajiban__section-heading h2,
+.hak-kewajiban__notice h2 {
+  margin: 0;
+  color: var(--service-navy);
+  font-size: 1.35rem;
+  line-height: 1.35;
+}
+
+.hak-kewajiban__list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: ketentuan;
+}
+
+.hak-kewajiban__list li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 14px;
+  padding: 8px 0;
+  counter-increment: ketentuan;
+  color: var(--service-text);
+  font-size: 1rem;
+  line-height: 1.75;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.hak-kewajiban__list li::before {
+  content: counter(ketentuan) ".";
+  color: #9b762e;
+  font-weight: 750;
+  text-align: right;
+}
+
+.hak-kewajiban__notice {
+  margin-top: 24px;
+  padding: clamp(22px, 4vw, 32px);
+  border-left: 4px solid #0b2a5b;
+  border-radius: 0 14px 14px 0;
+  background: #f5f7fa;
+}
+
+.hak-kewajiban__notice p {
+  margin: 10px 0 0;
+  color: var(--service-muted);
+  font-size: 1rem;
+  line-height: 1.75;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+@media (max-width: 720px) {
+  .service-detail--hak-kewajiban-klien-sertif {
+    padding: 32px 0 56px;
+  }
+
+  .hak-kewajiban__header {
+    margin-bottom: 24px;
+  }
+
+  .hak-kewajiban__card {
+    border-radius: 12px;
+  }
+
+  .hak-kewajiban__section-heading h2,
+  .hak-kewajiban__notice h2 {
+    font-size: 1.18rem;
+  }
+
+  .hak-kewajiban__list li {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 10px;
+    font-size: 0.96rem;
+    line-height: 1.7;
+  }
+}

@@ -1,0 +1,148 @@
+.legalitas-buttons {
+  --service-navy: #0b2a5b;
+  --service-gold: #c49a3c;
+  --service-text: #1d2733;
+  --service-line: #dfe4ec;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.legalitas-document-content {
+  margin-top: 28px;
+}
+
+.legalitas-document {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  border: 1px solid #dfe4ec;
+  border-radius: 6px;
+  background: #f7f9fc;
+  text-align: center;
+}
+
+.legalitas-document__link {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  cursor: zoom-in;
+}
+
+.legalitas-document__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 82vh;
+  object-fit: contain;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(29, 39, 51, 0.12);
+}
+
+.legalitas-document__pdf {
+  display: block;
+  width: 100%;
+  height: min(82vh, 1100px);
+  min-height: 640px;
+  border: 0;
+  background: #fff;
+}
+
+.legalitas-document__caption {
+  margin-top: 12px;
+  color: #5c6878;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.legalitas-document__unavailable {
+  margin: 0;
+  color: #5c6878;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.legalitas-button {
+  padding: 10px 22px;
+  border: 1.5px solid var(--service-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--service-text);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--service-gold);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.legalitas-button:focus-visible {
+  outline: 2px solid var(--service-navy);
+  outline-offset: 3px;
+}
+
+.legalitas-button[aria-pressed="true"] {
+  border-color: var(--service-navy);
+  background: var(--service-navy);
+  color: #fff;
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .legalitas-button:hover {
+    border-color: var(--service-navy);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 4px 0 var(--service-gold), 0 6px 10px rgba(11, 42, 91, 0.14);
+  }
+}
+
+.legalitas-button:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 1px 0 var(--service-gold);
+}
+
+@media (max-width: 720px) {
+  .legalitas-document-content {
+    margin-top: 20px;
+  }
+
+  .legalitas-document {
+    padding: 8px;
+  }
+
+  .legalitas-document__pdf {
+    height: 72svh;
+    min-height: 480px;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .legalitas-buttons {
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 2px 2px 8px;
+  }
+
+  .legalitas-button {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    font-size: 0.899rem;
+    white-space: nowrap;
+  }
+
+  .legalitas-button:last-child {
+    min-width: 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legalitas-button {
+    transition: none;
+  }
+}

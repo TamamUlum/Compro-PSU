@@ -1,0 +1,45 @@
+:root {
+  --track-bg: #0b2a5b;
+  --track-bg-hover: #143a7a;
+  --track-text: #ffffff;
+  --track-edge: #c49a3c;
+}
+
+@media (min-width: 861px) {
+  .navbar__links a.navbar__cta.navbar__track {
+    margin-left: 10px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    background: var(--track-bg);
+    color: var(--track-text);
+    font-weight: 700;
+    box-shadow: 0 3px 0 var(--track-edge);
+    transition: background-color 0.15s, transform 0.1s, box-shadow 0.1s;
+  }
+
+  .navbar__links a.navbar__cta.navbar__track.is-active::after {
+    display: none;
+  }
+
+  .navbar__links a.navbar__cta.navbar__track:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--track-edge);
+  }
+
+  .navbar__links a.navbar__cta.navbar__track:focus-visible {
+    outline: 2px solid var(--track-bg);
+    outline-offset: 4px;
+  }
+}
+
+@media (min-width: 861px) and (hover: hover) {
+  .navbar__links a.navbar__cta.navbar__track:hover {
+    background: var(--track-bg-hover);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar__links a.navbar__cta.navbar__track {
+    transition: none;
+  }
+}

@@ -1,0 +1,48 @@
+.service-detail--inhouse-training {
+  --service-navy: #0b2a5b;
+  --service-text: #1d2733;
+  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 0 88px;
+  color: var(--service-text);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+.service-detail--inhouse-training h1 {
+  margin: 0 0 24px;
+  color: var(--service-navy);
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+.service-detail--inhouse-training p,
+.service-detail--inhouse-training li {
+  max-width: 80ch;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+.service-detail--inhouse-training p {
+  margin: 0 0 20px;
+}
+
+.service-detail--inhouse-training ul,
+.service-detail--inhouse-training ol {
+  max-width: 80ch;
+  padding-left: 22px;
+}
+
+.service-detail--inhouse-training li + li {
+  margin-top: 8px;
+}
+
+@media (max-width: 720px) {
+  .service-detail--inhouse-training {
+    padding: 32px 0 56px;
+  }
+
+  .service-detail--inhouse-training h1 {
+    font-size: 1.5rem;
+  }
+}

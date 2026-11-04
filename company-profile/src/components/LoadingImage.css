@@ -1,0 +1,46 @@
+.loading-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  background: linear-gradient(110deg, #e8edf3 8%, #f5f7fa 18%, #e8edf3 33%);
+  background-size: 200% 100%;
+}
+
+.loading-image--loading {
+  animation: loading-image-shimmer 1.4s ease-in-out infinite;
+}
+
+.loading-image__spinner {
+  position: absolute;
+  z-index: 2;
+  top: calc(50% - 17px);
+  left: calc(50% - 17px);
+  width: 34px;
+  height: 34px;
+  border-width: 3px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.loading-image__error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: #475569;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+@keyframes loading-image-shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-image--loading {
+    animation: none;
+  }
+}

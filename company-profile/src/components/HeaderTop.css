@@ -1,0 +1,138 @@
+@import url("https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&display=swap");
+
+:root {
+  --topbar-height: 50px;
+  --topbar-bg: #0a2152;
+  --topbar-text: #ffffff;
+  --topbar-accent: #c49c24;
+}
+
+.header-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 51;
+  box-sizing: border-box;
+  height: var(--topbar-height);
+  border-top: 3px solid var(--topbar-accent);
+  background: linear-gradient(105deg, #071a40 0%, #0a2152 48%, #16396e 100%);
+  color: var(--topbar-text);
+  font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+}
+
+.header-top__inner {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0 clamp(20px, 4vw, 56px);
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.header-top__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--topbar-text);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.header-top__item svg {
+  color: var(--topbar-accent);
+  flex-shrink: 0;
+}
+
+a.header-top__item:hover {
+  color: #e3c25a;
+}
+
+a.header-top__item:focus-visible {
+  outline: 2px solid var(--topbar-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.header-top__hours {
+  margin-left: auto;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.header-top__language {
+  display: flex;
+  align-items: center;
+}
+
+.header-top__language .lang-toggle {
+  border-color: var(--topbar-text);
+  background: transparent;
+  color: var(--topbar-text);
+}
+
+.header-top__language .lang-toggle:hover {
+  background: var(--topbar-text);
+  color: var(--topbar-bg);
+}
+
+@media (max-width: 860px) {
+  :root {
+    --topbar-height: 42px;
+  }
+
+  .header-top {
+    font-size: 11.5px;
+  }
+
+  .header-top__inner {
+    padding: 0 12px;
+    gap: 10px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .header-top__item {
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  .header-top__item--email {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .header-top__item span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-top__item--phone,
+  .header-top__hours {
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+
+  .header-top__item svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .header-top__language {
+    display: none;
+  }
+}
+
+@media (min-width: 861px) and (max-width: 1024px) {
+  .header-top__language {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-top {
+    transition: none;
+  }
+}

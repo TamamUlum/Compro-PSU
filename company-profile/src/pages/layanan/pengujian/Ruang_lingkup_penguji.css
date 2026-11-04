@@ -1,0 +1,148 @@
+.service-detail--ruang-lingkup-penguji {
+  --service-navy: #0b2a5b;
+  --service-text: #1d2733;
+  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 0 88px;
+  color: var(--service-text);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+.service-detail--ruang-lingkup-penguji h1,
+.ruang-lingkup h1,
+.ruang-lingkup h2 {
+  margin: 0 0 24px;
+  color: var(--service-navy);
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+.ruang-lingkup {
+  --service-navy: #0b2a5b;
+  --service-text: #1d2733;
+  --service-border: #d9e1ec;
+  --service-row-alt: #f5f8fc;
+  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 0 88px;
+  color: var(--service-text);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+.ruang-lingkup .ruang-lingkup__header {
+  margin-bottom: 24px;
+}
+
+.ruang-lingkup .ruang-lingkup__table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--service-border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(11 42 91 / 8%);
+  -webkit-overflow-scrolling: touch;
+}
+
+.ruang-lingkup .ruang-lingkup__table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.ruang-lingkup .ruang-lingkup__table th,
+.ruang-lingkup .ruang-lingkup__table td {
+  padding: 13px 16px;
+  border: 1px solid var(--service-border);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.ruang-lingkup .ruang-lingkup__table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: #fff;
+  background: var(--service-navy);
+  white-space: nowrap;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.ruang-lingkup .ruang-lingkup__table tbody tr:nth-child(even) {
+  background: var(--service-row-alt);
+}
+
+.ruang-lingkup .ruang-lingkup__table tbody tr:hover {
+  background: #edf4ff;
+}
+
+.ruang-lingkup .ruang-lingkup__bidang {
+  min-width: 190px;
+  font-weight: 600;
+}
+
+.ruang-lingkup .ruang-lingkup__produk {
+  min-width: 260px;
+}
+
+.ruang-lingkup .ruang-lingkup__table td.ruang-lingkup__buku {
+  min-width: 150px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ruang-lingkup .ruang-lingkup__sni {
+  display: flex;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ruang-lingkup .ruang-lingkup__download {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: #fff;
+  background: #4bcda7;
+  border: 0;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.ruang-lingkup .ruang-lingkup__download:hover {
+  background: #30b991;
+  box-shadow: 0 4px 10px rgb(48 185 145 / 28%);
+  transform: translateY(-1px);
+}
+
+.ruang-lingkup .ruang-lingkup__download:focus-visible {
+  outline: 3px solid #a4efda;
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .ruang-lingkup {
+    padding: 32px 0 56px;
+  }
+
+  .ruang-lingkup h1,
+  .ruang-lingkup h2 {
+    font-size: 1.5rem;
+  }
+
+  .ruang-lingkup .ruang-lingkup__table th,
+  .ruang-lingkup .ruang-lingkup__table td {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+}

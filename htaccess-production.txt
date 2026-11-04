@@ -1,0 +1,40 @@
+# ============================================================================
+# .htaccess untuk https://psu.nwyan.com  (React SPA + Node.js API)
+# CARA PAKAI:
+#   1. cPanel -> File Manager -> masuk folder public_html
+#   2. Klik "+ File" -> nama file: .htaccess   (titik di depan, tanpa .txt)
+#   3. Klik kanan .htaccess -> Edit -> paste SEMUA isi file ini -> Save
+# ============================================================================
+
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+  RewriteRule ^api(/|$) - [L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^news/(.*)$ /api/news/$1 [L]
+
+RewriteRule ^ index.html [L]
+</IfModule>
+
+# --- Cache aset statis (aset Vite punya hash unik) ---
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType image/webp "access plus 1 year"
+ExpiresByType image/jpeg "access plus 1 year"
+ExpiresByType image/png "access plus 1 year"
+ExpiresByType image/svg+xml "access plus 1 year"
+ExpiresByType text/css "access plus 1 year"
+ExpiresByType application/javascript "access plus 1 year"
+</IfModule>
+# --- 1. Jangan ganggu request ke API Node.js (Passenger) ---
+# --- 2. Abaikan file/folder yang benar-benar ada ---
+# --- 3. URL pendek untuk gambar upload dari backend ---
+# --- 4. Selain itu, arahkan ke React (SPA) ---
