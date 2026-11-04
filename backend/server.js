@@ -48,25 +48,61 @@ const CLOUDFLARE_PROXY_CIDRS = [
   "2c0f:f248::/32",
 ];
 
+// Kebijakan Minimum Prefix Keamanan (SEC-004 Phase 1.3.1):
+// - IPv4: 8 <= prefix <= 32 (Mencegah wildcard /0 s/d /7 yang mencakup >16.7 juta IP)
+// - IPv6: 16 <= prefix <= 128 (Mencegah wildcard /0 s/d /15 yang mencakup ruang alamat tak terkontrol)
+// - Seluruh 22 blok resmi Cloudflare (IPv4 /13-/22 dan IPv6 /29-/32) sepenuhnya valid
+const IPV4_MIN_PREFIX = 8;
+const IPV4_MAX_PREFIX = 32;
+const IPV6_MIN_PREFIX = 16;
+const IPV6_MAX_PREFIX = 128;
+
 // Validasi format IPv4/IPv6 tunggal atau notasi CIDR (ip/mask)
 function isValidIpOrCidr(str) {
   if (typeof str !== "string") return false;
   const trimmed = str.trim();
   if (!trimmed) return false;
 
-  const ipType = net.isIP(trimmed);
-  if (ipType === 4 || ipType === 6) return true;
+  // Tolak URL atau hostname
+  if (trimmed.includes("://") || (/[a-z]/i.test(trimmed) && !trimmed.includes(":"))) {
+    return false;
+  }
 
+  // Standalone IP
+  const ipType = net.isIP(trimmed);
+  if (ipType === 4 || ipType === 6) {
+    // Tolak alamat unspecified
+    if (trimmed === "0.0.0.0" || trimmed === "::") return false;
+    return true;
+  }
+
+  // Notasi CIDR: baseIp/prefix
   const parts = trimmed.split("/");
   if (parts.length === 2) {
     const baseIp = parts[0].trim();
     const prefixStr = parts[1].trim();
     const baseType = net.isIP(baseIp);
 
-    if (/^\d+$/.test(prefixStr)) {
-      const prefix = Number(prefixStr);
-      if (baseType === 4 && prefix >= 0 && prefix <= 32) return true;
-      if (baseType === 6 && prefix >= 0 && prefix <= 128) return true;
+    // Pastikan baseIp valid dan bukan unspecified
+    if (baseType !== 4 && baseType !== 6) return false;
+    if (baseIp === "0.0.0.0" || baseIp === "::") {
+      return false;
+    }
+
+    // Prefix harus bilangan bulat numerik murni
+    if (!/^\d+$/.test(prefixStr)) return false;
+    const prefix = Number(prefixStr);
+
+    if (baseType === 4) {
+      // Kebijakan IPv4: 8 <= prefix <= 32 (Tolak /0 s/d /7)
+      if (prefix >= IPV4_MIN_PREFIX && prefix <= IPV4_MAX_PREFIX) {
+        return true;
+      }
+    } else if (baseType === 6) {
+      // Kebijakan IPv6: 16 <= prefix <= 128 (Tolak /0 s/d /15)
+      if (prefix >= IPV6_MIN_PREFIX && prefix <= IPV6_MAX_PREFIX) {
+        return true;
+      }
     }
   }
 
@@ -143,7 +179,7 @@ function configureTrustProxy(expressApp) {
       finalProxies.push(item);
     } else {
       throw new Error(
-        `[FATAL SECURITY CONFIGURATION ERROR] Invalid or malformed entry in TRUST_PROXY: '${item}'. Must be a valid IPv4/IPv6 address, CIDR notation (e.g. 10.0.0.0/8), or supported keyword ('loopback', 'cloudflare').`
+        `[FATAL SECURITY CONFIGURATION ERROR] Invalid, overly broad, or malformed entry in TRUST_PROXY: '${item}'. Must be a valid IPv4/IPv6 address, compliant CIDR notation (IPv4 prefix 8-32, IPv6 prefix 16-128), or supported keyword ('loopback', 'cloudflare'). Universal CIDRs (such as /0) and hostnames are strictly prohibited.`
       );
     }
   }
@@ -3684,5 +3720,7 @@ module.exports = {
   configureTrustProxy,
   getClientIp,
   isValidIpOrCidr,
+  IPV4_MIN_PREFIX,
+  IPV6_MIN_PREFIX,
   CLOUDFLARE_PROXY_CIDRS,
 };

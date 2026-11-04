@@ -172,32 +172,42 @@ async function runTestSuite() {
     recordTest("UNIT", "UNIT-02", "Validate standard IPv6 addresses", allValid, `Tested: ${ips.join(", ")}`);
   }
 
-  // UNIT-03: Valid IPv4 CIDRs
+  // UNIT-03: Valid IPv4 CIDRs (Policy: 8 <= prefix <= 32)
   {
-    const cidrs = ["10.0.0.0/8", "172.16.0.0/12", "192.168.1.0/24", "173.245.48.0/20", "0.0.0.0/0", "1.2.3.4/32"];
+    const cidrs = ["10.0.0.0/8", "172.16.0.0/12", "192.168.1.0/24", "173.245.48.0/20", "1.2.3.4/32"];
     const allValid = cidrs.every(isValidIpOrCidr);
-    recordTest("UNIT", "UNIT-03", "Validate IPv4 CIDR notation (prefix 0 to 32)", allValid, `Tested: ${cidrs.join(", ")}`);
+    recordTest("UNIT", "UNIT-03", "Validate IPv4 CIDR notation (prefix 8 to 32)", allValid, `Tested: ${cidrs.join(", ")}`);
   }
 
-  // UNIT-04: Valid IPv6 CIDRs
+  // UNIT-04: Valid IPv6 CIDRs (Policy: 16 <= prefix <= 128)
   {
-    const cidrs = ["2400:cb00::/32", "2606:4700::/32", "2a06:98c0::/29", "::/0", "::1/128"];
+    const cidrs = ["2400:cb00::/32", "2606:4700::/32", "2a06:98c0::/29", "2001:db8::/16", "::1/128"];
     const allValid = cidrs.every(isValidIpOrCidr);
-    recordTest("UNIT", "UNIT-04", "Validate IPv6 CIDR notation (prefix 0 to 128)", allValid, `Tested: ${cidrs.join(", ")}`);
+    recordTest("UNIT", "UNIT-04", "Validate IPv6 CIDR notation (prefix 16 to 128)", allValid, `Tested: ${cidrs.join(", ")}`);
   }
 
   // UNIT-05: Reject invalid IP addresses
   {
-    const badIps = ["999.999.999.999", "1.2.3", "http://proxy", "not_an_ip", "10.0.0.256", ""];
+    const badIps = ["999.999.999.999", "1.2.3", "http://proxy", "not_an_ip", "10.0.0.256", "0.0.0.0", "::", ""];
     const allRejected = badIps.every((ip) => !isValidIpOrCidr(ip));
     recordTest("UNIT", "UNIT-05", "Reject malformed IP strings", allRejected, `Tested: ${badIps.join(", ")}`);
   }
 
-  // UNIT-06: Reject invalid CIDR notations
+  // UNIT-06: Reject invalid, universal, or overly broad CIDR notations
   {
-    const badCidrs = ["10.0.0.0/33", "192.168.1.1/-1", "10.0.0.0/abc", "2400::/129", "invalid/24"];
+    const badCidrs = [
+      "0.0.0.0/0",       // Universal IPv4 wildcard (must be rejected)
+      "::/0",             // Universal IPv6 wildcard (must be rejected)
+      "10.0.0.0/7",       // Overly broad IPv4 (prefix < 8)
+      "2001::/15",        // Overly broad IPv6 (prefix < 16)
+      "10.0.0.0/33",      // Out of range IPv4 (prefix > 32)
+      "192.168.1.1/-1",   // Negative prefix
+      "10.0.0.0/abc",     // Non-numeric prefix
+      "2400::/129",       // Out of range IPv6 (prefix > 128)
+      "invalid/24"        // Non-IP base
+    ];
     const allRejected = badCidrs.every((cidr) => !isValidIpOrCidr(cidr));
-    recordTest("UNIT", "UNIT-06", "Reject out-of-range or malformed CIDR masks", allRejected, `Tested: ${badCidrs.join(", ")}`);
+    recordTest("UNIT", "UNIT-06", "Reject universal (/0), overly broad, or malformed CIDR masks", allRejected, `Tested: ${badCidrs.join(", ")}`);
   }
 
   // UNIT-07: Strictly reject TRUST_PROXY=true (throws fatal error)
@@ -239,7 +249,7 @@ async function runTestSuite() {
       thrown = true;
       errMessage = e.message;
     }
-    const passed = thrown && errMessage.includes("Invalid or malformed entry in TRUST_PROXY");
+    const passed = thrown && errMessage.includes("entry in TRUST_PROXY");
     recordTest("UNIT", "UNIT-09", "Strictly reject invalid IP/CIDR in custom proxy list", passed, `Error: ${errMessage}`);
   }
 
