@@ -138,3 +138,4 @@ Sesuai aturan kerja non-negosiasi:
 - **TIDAK MEMULAI** Phase 2 atau Phase 3.
 - **TIDAK MENJALANKAN** deployment ke production.
 - Pekerjaan dihentikan untuk menunggu persetujuan eksplisit dari pihak Pemilik Sistem.
+
