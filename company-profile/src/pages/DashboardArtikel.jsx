@@ -4,7 +4,6 @@ import { AUTHOR_OPTIONS, FALLBACK_ARTICLES } from "../data/articlesFallback";
 import "./Artikel.css";
 import "./DashboardArtikel.css";
 
-const TOKEN_STORAGE_KEY = "psu_admin_jwt_token";
 const USER_STORAGE_KEY = "psu_admin_user";
 
 const RECOMMENDED_TAGS = [
@@ -184,6 +183,14 @@ function formatIndoDate(dateStr) {
   });
 }
 
+function getCookie(name) {
+  if (typeof document === "undefined") return "";
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift() || "";
+  return "";
+}
+
 async function apiRequest(pathUrl, options = {}, token = "") {
   const bases = [""];
   let lastError = null;
@@ -193,12 +200,26 @@ async function apiRequest(pathUrl, options = {}, token = "") {
     try {
       const headers = {
         "Content-Type": "application/json",
+        "X-Auth-Client": "browser",
         ...(options.headers || {}),
       };
-      if (token) {
+
+      // SEC-006: Lampirkan CSRF Token dari cookie untuk request mutasi state
+      const method = (options.method || "GET").toUpperCase();
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+        const csrfToken = getCookie("psu_csrf_token");
+        if (csrfToken) {
+          headers["X-CSRF-Token"] = csrfToken;
+        }
+      }
+
+      // Backward compatibility jika Bearer token diberikan oleh pemanggil non-browser
+      if (token && token !== "authenticated") {
         headers.Authorization = `Bearer ${token}`;
       }
+
       const res = await fetch(fullUrl, {
+        credentials: "include", // SEC-006: Selalu sertakan HttpOnly session cookies
         ...options,
         headers,
       });
@@ -219,9 +240,8 @@ export default function DashboardArtikel() {
   const { subpage, slug: routeSlug } = useParams();
 
   // ==========================================================================
-  // STATE SESI LOGIN & JWT
+  // STATE SESI LOGIN & JWT (SEC-006: HTTPONLY COOKIE AUTHENTICATION)
   // ==========================================================================
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY) || "");
   const [adminUser, setAdminUser] = useState(() => {
     try {
       const raw = localStorage.getItem(USER_STORAGE_KEY);
@@ -230,6 +250,9 @@ export default function DashboardArtikel() {
       return null;
     }
   });
+  // Token state diselaraskan dengan sesi HttpOnly cookie (tidak ada token di localStorage)
+  const token = adminUser ? "authenticated" : "";
+  const setToken = () => {};
   const [authChecking, setAuthChecking] = useState(true);
   const [dbConnected, setDbConnected] = useState(true);
 
@@ -372,10 +395,13 @@ export default function DashboardArtikel() {
     }, 4500);
   }, []);
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  const handleLogout = useCallback(async () => {
+    try {
+      await apiRequest("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Abaikan error jaringan saat logout
+    }
     localStorage.removeItem(USER_STORAGE_KEY);
-    setToken("");
     setAdminUser(null);
   }, []);
 
@@ -431,16 +457,12 @@ export default function DashboardArtikel() {
     [token]
   );
 
-  // Verifikasi Sesi JWT saat halaman dibuka
+  // Verifikasi Sesi JWT saat halaman dibuka (SEC-006: HttpOnly Cookie Authentication)
   useEffect(() => {
     let active = true;
     async function verifySession() {
-      if (!token) {
-        setAuthChecking(false);
-        return;
-      }
       try {
-        const res = await apiRequest("/api/auth/me", {}, token);
+        const res = await apiRequest("/api/auth/me");
         if (!active) return;
         if (res.ok && res.data.success && res.data.user) {
           setAdminUser(res.data.user);
@@ -448,8 +470,8 @@ export default function DashboardArtikel() {
           setProfileEmail(res.data.user.email || "");
           setDbConnected(Boolean(res.data.dbConnected));
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(res.data.user));
-          await loadDashboardData(token);
-        } else if (res.status === 401) {
+          await loadDashboardData("authenticated");
+        } else if (res.status === 401 || res.status === 403) {
           handleLogout();
         }
       } catch {
@@ -463,7 +485,7 @@ export default function DashboardArtikel() {
     return () => {
       active = false;
     };
-  }, [token, handleLogout, loadDashboardData]);
+  }, [handleLogout, loadDashboardData]);
 
   // Sinkronisasi form ketika berpindah ke tab Tambah atau Edit
   const populateEditorFromArticle = useCallback(
@@ -560,14 +582,13 @@ export default function DashboardArtikel() {
         }),
       });
 
-      if (res.ok && res.data.success && res.data.token) {
-        localStorage.setItem(TOKEN_STORAGE_KEY, res.data.token);
+      if (res.ok && res.data.success && res.data.user) {
+        // SEC-006: Simpan identitas pengguna untuk UI; token JWT tersimpan aman di HttpOnly Cookie
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(res.data.user));
-        setToken(res.data.token);
         setAdminUser(res.data.user);
         setProfileFullName(res.data.user.full_name || "");
         setProfileEmail(res.data.user.email || "");
-        await loadDashboardData(res.data.token);
+        await loadDashboardData("authenticated");
       } else {
         setLoginError(res.data.message || "Login gagal. Periksa username dan password Anda.");
       }

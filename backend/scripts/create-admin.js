@@ -94,6 +94,7 @@ function saveToFallbackStore(username, email, passwordHash, name, finalRole) {
       full_name: name,
       role: finalRole,
       is_active: 1,
+      token_version: existingIdx >= 0 ? (currentUsers[existingIdx].token_version || 1) + 1 : 1,
       last_login: null,
       created_at: new Date().toISOString(),
     };
@@ -196,14 +197,14 @@ async function main() {
       console.warn(`[PERINGATAN] Akun dengan username '${username}' atau email '${email}' sudah ada.`);
       console.log("Memperbarui password dan status aktif akun tersebut...");
       await connection.execute(
-        "UPDATE admin_users SET password_hash = ?, full_name = ?, role = ?, is_active = 1 WHERE username = ? OR email = ?",
+        "UPDATE admin_users SET password_hash = ?, full_name = ?, role = ?, is_active = 1, token_version = token_version + 1 WHERE username = ? OR email = ?",
         [passwordHash, name, finalRole, username, email]
       );
       console.log(`[SUKSES] Akun '${username}' berhasil diperbarui sebagai ${finalRole}.`);
     } else {
       await connection.execute(
-        `INSERT INTO admin_users (username, email, password_hash, full_name, role, is_active)
-         VALUES (?, ?, ?, ?, ?, 1)`,
+        `INSERT INTO admin_users (username, email, password_hash, full_name, role, is_active, token_version)
+         VALUES (?, ?, ?, ?, ?, 1, 1)`,
         [username, email, passwordHash, name, finalRole]
       );
       console.log(`[SUKSES] Akun administrator baru '${username}' (${finalRole}) berhasil dibuat!`);

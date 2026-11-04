@@ -212,8 +212,148 @@ if (!JWT_SECRET || typeof JWT_SECRET !== "string" || JWT_SECRET.trim().length < 
 }
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
 
-app.use(cors());
+// ============================================================================
+// STRICT ORIGIN WHITELIST & CORS CONFIGURATION (SEC-007)
+// ============================================================================
+const DEFAULT_ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5000",
+  "http://127.0.0.1:5000",
+  "https://penilaistandaruji.com",
+  "https://www.penilaistandaruji.com",
+];
+
+const envAllowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
+
+const ALLOWED_ORIGIN_SET = new Set([
+  ...DEFAULT_ALLOWED_ORIGINS.map((o) => o.toLowerCase()),
+  ...envAllowedOrigins,
+]);
+
+function isOriginAllowed(origin) {
+  if (!origin) return true; // Direct connection, same-origin, or CLI/API tools
+  try {
+    const parsed = new URL(origin);
+    return ALLOWED_ORIGIN_SET.has(parsed.origin.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        return callback(null, true);
+      }
+      // Tolak origin tidak terdaftar tanpa header Access-Control-Allow-Origin
+      return callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Access-Token",
+      "X-CSRF-Token",
+      "X-Auth-Client",
+      "CF-Connecting-IP",
+    ],
+    exposedHeaders: [
+      "Retry-After",
+      "X-RateLimit-Limit",
+      "X-RateLimit-Remaining",
+      "X-RateLimit-Reset",
+      "Set-Cookie",
+    ],
+  })
+);
+
+// ============================================================================
+// COOKIE PARSER & CSRF PROTECTION MIDDLEWARE (SEC-006)
+// ============================================================================
+function parseCookies(req) {
+  const cookies = {};
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader || typeof cookieHeader !== "string") return cookies;
+  const pairs = cookieHeader.split(";");
+  for (const pair of pairs) {
+    const idx = pair.indexOf("=");
+    if (idx === -1) continue;
+    const key = pair.slice(0, idx).trim();
+    const val = pair.slice(idx + 1).trim();
+    if (!key) continue;
+    try {
+      cookies[key] = decodeURIComponent(val);
+    } catch {
+      cookies[key] = val;
+    }
+  }
+  return cookies;
+}
+
+app.use((req, res, next) => {
+  req.cookies = parseCookies(req);
+  next();
+});
+
 app.use(express.json({ limit: "25mb" }));
+
+function csrfProtection(req, res, next) {
+  const stateChangingMethods = ["POST", "PUT", "PATCH", "DELETE"];
+  if (!stateChangingMethods.includes(req.method.toUpperCase())) {
+    return next();
+  }
+
+  // Pengecualian endpoint publik login (inisiasi sesi)
+  if (req.path === "/api/auth/login") {
+    return next();
+  }
+
+  // Jika permintaan diautentikasi via HttpOnly cookie, validasi CSRF bersifat wajib
+  const hasCookieAuth = Boolean(req.cookies && req.cookies.psu_auth_token);
+  if (hasCookieAuth) {
+    // Validasi Origin / Referer terhadap whitelist jika ada
+    const origin = req.headers.origin;
+    if (origin && !isOriginAllowed(origin)) {
+      return res.status(403).json({
+        success: false,
+        forbidden: true,
+        message: `CSRF Error: Permintaan dari origin '${origin}' ditolak oleh kebijakan keamanan.`,
+      });
+    }
+
+    const csrfHeader = req.headers["x-csrf-token"];
+    const csrfCookie = req.cookies.psu_csrf_token;
+
+    if (!csrfHeader || !csrfCookie) {
+      return res.status(403).json({
+        success: false,
+        forbidden: true,
+        message: "CSRF token hilang atau tidak valid. Silakan muat ulang halaman.",
+      });
+    }
+
+    const headerBuf = Buffer.from(String(csrfHeader));
+    const cookieBuf = Buffer.from(String(csrfCookie));
+
+    if (headerBuf.length !== cookieBuf.length || !crypto.timingSafeEqual(headerBuf, cookieBuf)) {
+      return res.status(403).json({
+        success: false,
+        forbidden: true,
+        message: "Validasi CSRF token gagal. Permintaan tidak diizinkan.",
+      });
+    }
+  }
+
+  return next();
+}
+
+app.use(csrfProtection);
 
 // Sajikan folder gambar berita secara statis agar bisa diakses langsung dari backend maupun Vite
 const publicNewsDir = path.join(__dirname, "..", "company-profile", "public", "news");
@@ -237,12 +377,13 @@ const dbConfig = {
   port: Number(process.env.DB_PORT) || 3306,
 };
 
-const TABLE_MAP = {
+// Pemetaan Whitelist Tabel Sertifikat (SEC-005 Hardening: Object.freeze)
+const TABLE_MAP = Object.freeze({
   "sertifikasi-produk": "sertifikat_produk",
   pengujian: "sertifikat_pengujian",
   kalibrasi: "sertifikat_kalibrasi",
   "sertifikasi-sistem-manajemen": "sertifikat_sistem_manajemen",
-};
+});
 
 const AUTHOR_OPTIONS = [
   "Corporate Secretary PSU",
@@ -743,7 +884,8 @@ function verifyPassword(plainPassword, storedHash) {
     if (derived.length !== keyBuf.length) return false;
     return crypto.timingSafeEqual(derived, keyBuf);
   }
-  return String(plainPassword) === storedHash;
+  // SEC-005 Remediasi: Tolak seluruh komparasi password plaintext (Fail Closed)
+  return false;
 }
 
 function validatePasswordPolicy(password) {
@@ -768,6 +910,51 @@ function validatePasswordPolicy(password) {
 function validateEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(String(email || "").trim());
+}
+
+// ============================================================================
+// SANITASI INPUT KONTEN HTML & ANTI-STORED XSS (SEC-007)
+// ============================================================================
+function sanitizeHtmlContent(htmlInput) {
+  if (!htmlInput || typeof htmlInput !== "string") return "";
+  let sanitized = htmlInput;
+
+  // 1. Hapus tag berbahaya berpasangan beserta isinya
+  sanitized = sanitized.replace(
+    /<\s*(script|style|iframe|object|embed|applet|meta|link|base|form|input|button|textarea)[\s\S]*?>[\s\S]*?<\s*\/\s*\1\s*>/gi,
+    ""
+  );
+  // Hapus tag berbahaya mandiri / self-closing
+  sanitized = sanitized.replace(
+    /<\s*(script|style|iframe|object|embed|applet|meta|link|base|form|input|button|textarea)[^>]*\/?>/gi,
+    ""
+  );
+
+  // 2. Hapus seluruh atribut event handler on* (seperti onload=, onerror=, onclick=, onfocus=, dll)
+  sanitized = sanitized.replace(
+    /(\s+)on[a-z0-9_-]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi,
+    ""
+  );
+
+  // 3. Netralkan protokol berbahaya pada atribut href dan src (javascript:, vbscript:, data: non-gambar)
+  sanitized = sanitized.replace(
+    /(href|src)\s*=\s*("|')(?:javascript|vbscript|data:(?!image\/)):[\s\S]*?\2/gi,
+    '$1="#"'
+  );
+  sanitized = sanitized.replace(
+    /(href|src)\s*=\s*(?:javascript|vbscript|data:(?!image\/)):[^\s>]+/gi,
+    '$1="#"'
+  );
+
+  return sanitized;
+}
+
+function sanitizePlainText(textInput) {
+  if (!textInput || typeof textInput !== "string") return "";
+  return textInput
+    .replace(/<\s*(script|style)[\s\S]*?>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/<[^>]*>/g, "")
+    .trim();
 }
 
 // ============================================================================
@@ -1209,22 +1396,117 @@ function verifyJwt(token) {
   return payload;
 }
 
-function extractTokenFromHeader(req) {
+function extractToken(req) {
+  // Prioritas 1: HttpOnly Cookie (Browser Session SEC-006)
+  if (req.cookies && req.cookies.psu_auth_token) {
+    return { token: String(req.cookies.psu_auth_token).trim(), source: "cookie" };
+  }
+
+  // Prioritas 2: Authorization Header (Integrasi Non-Browser / CLI / Automated Test)
   const authHeader = req.headers.authorization || req.headers.Authorization || "";
   if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
-    return authHeader.slice(7).trim();
+    return { token: authHeader.slice(7).trim(), source: "header" };
   }
   if (req.headers["x-access-token"]) {
-    return String(req.headers["x-access-token"]).trim();
+    return { token: String(req.headers["x-access-token"]).trim(), source: "header" };
   }
-  return "";
+  return { token: "", source: "none" };
 }
 
-function requireAdminAuth(req, res, next) {
+function extractTokenFromHeader(req) {
+  return extractToken(req).token;
+}
+
+async function requireAdminAuth(req, res, next) {
   try {
-    const token = extractTokenFromHeader(req);
+    const { token, source } = extractToken(req);
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        unauthorized: true,
+        message: "Akses ditolak. Silakan login sebagai Admin terlebih dahulu.",
+      });
+    }
+
     const decoded = verifyJwt(token);
-    req.adminUser = decoded;
+
+    // SEC-008: Validasi Status Akun & Token Revocation Secara Real-Time
+    let userRecord = null;
+    if (dbConnected && pool) {
+      try {
+        const [rows] = await pool.execute(
+          "SELECT id, username, email, full_name, role, is_active, token_version FROM admin_users WHERE id = ? OR username = ? LIMIT 1",
+          [decoded.sub || -1, decoded.username || ""]
+        );
+        if (rows.length > 0) userRecord = rows[0];
+      } catch {
+        // Fallback
+      }
+    }
+
+    if (!userRecord) {
+      userRecord =
+        fallbackStore.users.find(
+          (u) =>
+            u.id === decoded.sub ||
+            u.username.toLowerCase() === (decoded.username || "").toLowerCase()
+        ) || null;
+
+      if (!userRecord) {
+        const freshFallbackUsers = loadFallbackUsers();
+        if (freshFallbackUsers.length > 0) {
+          fallbackStore.users = freshFallbackUsers;
+        }
+        userRecord =
+          fallbackStore.users.find(
+            (u) =>
+              u.id === decoded.sub ||
+              u.username.toLowerCase() === (decoded.username || "").toLowerCase()
+          ) || null;
+      }
+    }
+
+    if (!userRecord) {
+      return res.status(401).json({
+        success: false,
+        unauthorized: true,
+        message: "Akun pengguna tidak ditemukan.",
+      });
+    }
+
+    // SEC-008: Segera tolak akses jika akun dinonaktifkan (is_active = 0)
+    if (Number(userRecord.is_active) === 0) {
+      return res.status(403).json({
+        success: false,
+        forbidden: true,
+        message: "Akun administrator ini telah dinonaktifkan.",
+      });
+    }
+
+    // SEC-008: Validasi token_version untuk pembatalan sesi (Revocation Check)
+    const currentTokenVersion =
+      typeof userRecord.token_version === "number" ? userRecord.token_version : 1;
+    const tokenVersionInJwt =
+      typeof decoded.token_version === "number" ? decoded.token_version : 1;
+
+    if (tokenVersionInJwt !== currentTokenVersion) {
+      return res.status(401).json({
+        success: false,
+        unauthorized: true,
+        tokenRevoked: true,
+        message: "Sesi login telah dibatalkan atau kedaluwarsa. Silakan login kembali.",
+      });
+    }
+
+    // Peran (role) pengguna selalu diambil segar dari database/store
+    req.adminUser = {
+      ...decoded,
+      role: userRecord.role,
+      is_active: userRecord.is_active,
+      token_version: currentTokenVersion,
+      authSource: source,
+    };
+
     return next();
   } catch (err) {
     return res.status(401).json({
@@ -1270,7 +1552,12 @@ function loadFallbackUsers() {
   try {
     if (fs.existsSync(fallbackAdminFile)) {
       const data = JSON.parse(fs.readFileSync(fallbackAdminFile, "utf8"));
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data)) {
+        return data.map((u) => ({
+          ...u,
+          token_version: typeof u.token_version === "number" ? u.token_version : 1,
+        }));
+      }
     }
   } catch {
     // Ignore read error
@@ -1583,6 +1870,7 @@ async function initDatabase() {
         full_name VARCHAR(150) NOT NULL,
         role ENUM('Super Admin', 'Editor', 'Author') NOT NULL DEFAULT 'Super Admin',
         is_active TINYINT(1) NOT NULL DEFAULT 1,
+        token_version INT NOT NULL DEFAULT 1,
         last_login DATETIME NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -1641,8 +1929,9 @@ async function initDatabase() {
       await pool.query(q);
     }
 
-    // Alter table migrations bagi database artikel yang sudah ada sebelumnya
+    // Alter table migrations bagi database yang sudah ada sebelumnya
     const alterMigrations = [
+      "ALTER TABLE admin_users ADD COLUMN token_version INT NOT NULL DEFAULT 1 AFTER is_active",
       "ALTER TABLE artikel ADD COLUMN author VARCHAR(150) NOT NULL DEFAULT 'Corporate Secretary PSU' AFTER image_url",
       "ALTER TABLE artikel ADD COLUMN is_featured TINYINT(1) NOT NULL DEFAULT 0 AFTER status",
       "ALTER TABLE artikel ADD COLUMN views INT NOT NULL DEFAULT 0 AFTER is_featured",
@@ -1826,10 +2115,6 @@ app.post("/api/auth/login", authRateLimiter, async (req, res) => {
     }
 
     if (!userRecord) {
-      const freshFallbackUsers = loadFallbackUsers();
-      if (freshFallbackUsers.length > 0) {
-        fallbackStore.users = freshFallbackUsers;
-      }
       userRecord =
         fallbackStore.users.find(
           (u) =>
@@ -1837,6 +2122,20 @@ app.post("/api/auth/login", authRateLimiter, async (req, res) => {
               u.email.toLowerCase() === identifier.toLowerCase()) &&
             u.is_active === 1
         ) || null;
+
+      if (!userRecord) {
+        const freshFallbackUsers = loadFallbackUsers();
+        if (freshFallbackUsers.length > 0) {
+          fallbackStore.users = freshFallbackUsers;
+        }
+        userRecord =
+          fallbackStore.users.find(
+            (u) =>
+              (u.username.toLowerCase() === identifier.toLowerCase() ||
+                u.email.toLowerCase() === identifier.toLowerCase()) &&
+              u.is_active === 1
+          ) || null;
+      }
     }
 
     if (!userRecord || !verifyPassword(rawPassword, userRecord.password_hash)) {
@@ -1866,12 +2165,39 @@ app.post("/api/auth/login", authRateLimiter, async (req, res) => {
       userRecord.last_login = nowIso;
     }
 
+    const userTokenVersion =
+      typeof userRecord.token_version === "number" ? userRecord.token_version : 1;
+
     const { token, expiresAt, expiresInSeconds } = signJwt({
       sub: userRecord.id,
       username: userRecord.username,
       email: userRecord.email,
       full_name: userRecord.full_name,
       role: userRecord.role,
+      token_version: userTokenVersion,
+    });
+
+    // SEC-006: Terbitkan HttpOnly Cookie dan CSRF Token
+    const csrfToken = crypto.randomBytes(32).toString("hex");
+    const isSecure =
+      process.env.NODE_ENV === "production" ||
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https";
+
+    res.cookie("psu_auth_token", token, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: expiresInSeconds * 1000,
+    });
+
+    res.cookie("psu_csrf_token", csrfToken, {
+      httpOnly: false,
+      secure: isSecure,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: expiresInSeconds * 1000,
     });
 
     await logAdminActivity(
@@ -1881,10 +2207,11 @@ app.post("/api/auth/login", authRateLimiter, async (req, res) => {
       `Sesi JWT diterbitkan hingga ${expiresAt}`
     );
 
-    return res.json({
+    const isBrowserClient = req.headers["x-auth-client"] === "browser";
+    const responsePayload = {
       success: true,
       message: "Login berhasil! Selamat datang di Dashboard Artikel PSU.",
-      token,
+      csrfToken,
       expiresAt,
       expiresInSeconds,
       user: {
@@ -1895,12 +2222,71 @@ app.post("/api/auth/login", authRateLimiter, async (req, res) => {
         role: userRecord.role,
         last_login: nowIso,
       },
-    });
+    };
+
+    // Untuk browser client, JANGAN kirim token di JSON body (mencegah simpan di localStorage)
+    if (!isBrowserClient) {
+      responsePayload.token = token;
+    }
+
+    return res.json(responsePayload);
   } catch (error) {
     console.error("Login error:", error.message);
     return res.status(500).json({
       success: false,
       message: "Terjadi kesalahan saat memproses login.",
+      error: error.message,
+    });
+  }
+});
+
+// ============================================================================
+// ENDPOINT LOGOUT ADMIN & PEMBATALAN SESI (SEC-006 & SEC-008)
+// ============================================================================
+app.post("/api/auth/logout", async (req, res) => {
+  try {
+    const { token } = extractToken(req);
+    if (token) {
+      try {
+        const decoded = verifyJwt(token);
+        if (decoded && (decoded.sub || decoded.username)) {
+          if (dbConnected && pool) {
+            await pool.execute(
+              "UPDATE admin_users SET token_version = token_version + 1 WHERE id = ? OR username = ?",
+              [decoded.sub || -1, decoded.username || ""]
+            );
+          } else {
+            const user = fallbackStore.users.find(
+              (u) => u.id === decoded.sub || u.username === decoded.username
+            );
+            if (user) {
+              user.token_version = (user.token_version || 1) + 1;
+              saveFallbackUsers(fallbackStore.users);
+            }
+          }
+          await logAdminActivity(
+            decoded.username || "admin",
+            "LOGOUT",
+            "Keluar dari Sesi Dashboard",
+            "Sesi login diakhiri dan token dibatalkan (token_version diinkrementasi)"
+          );
+        }
+      } catch {
+        // Abaikan jika token telah kedaluwarsa
+      }
+    }
+
+    res.clearCookie("psu_auth_token", { path: "/" });
+    res.clearCookie("psu_csrf_token", { path: "/" });
+
+    return res.json({
+      success: true,
+      message: "Logout berhasil. Sesi telah diakhiri secara aman.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Gagal memproses logout.",
       error: error.message,
     });
   }
@@ -2051,13 +2437,16 @@ app.put("/api/auth/password", requireAdminAuth, authRateLimiter, async (req, res
     }
 
     const newHash = hashPassword(newPassword);
+    const nextTokenVersion = (userRecord.token_version || 1) + 1;
+
     if (dbConnected && pool) {
-      await pool.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?", [
-        newHash,
-        userRecord.id,
-      ]);
+      await pool.execute(
+        "UPDATE admin_users SET password_hash = ?, token_version = ? WHERE id = ?",
+        [newHash, nextTokenVersion, userRecord.id]
+      );
     } else {
       userRecord.password_hash = newHash;
+      userRecord.token_version = nextTokenVersion;
       saveFallbackUsers(fallbackStore.users);
     }
 
@@ -2065,13 +2454,53 @@ app.put("/api/auth/password", requireAdminAuth, authRateLimiter, async (req, res
       username,
       "CHANGE_PASSWORD",
       username,
-      "Mengubah password keamanan akun admin"
+      "Mengubah password keamanan akun admin (token_version diinkrementasi, token lama dibatalkan)"
     );
 
-    return res.json({
+    // Terbitkan token dan cookie baru dengan token_version terbaru agar sesi aktif tetap valid
+    const { token: newToken, expiresAt, expiresInSeconds } = signJwt({
+      sub: userRecord.id,
+      username: userRecord.username,
+      email: userRecord.email,
+      full_name: userRecord.full_name,
+      role: userRecord.role,
+      token_version: nextTokenVersion,
+    });
+
+    const csrfToken = crypto.randomBytes(32).toString("hex");
+    const isSecure =
+      process.env.NODE_ENV === "production" ||
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https";
+
+    res.cookie("psu_auth_token", newToken, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: expiresInSeconds * 1000,
+    });
+
+    res.cookie("psu_csrf_token", csrfToken, {
+      httpOnly: false,
+      secure: isSecure,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: expiresInSeconds * 1000,
+    });
+
+    const isBrowserClient = req.headers["x-auth-client"] === "browser";
+    const resPayload = {
       success: true,
       message: "Password berhasil diperbarui!",
-    });
+      csrfToken,
+      expiresAt,
+    };
+    if (!isBrowserClient) {
+      resPayload.token = newToken;
+    }
+
+    return res.json(resPayload);
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -2141,8 +2570,8 @@ app.post("/api/admin/users", requireAdminAuth, requireRole("Super Admin"), async
 
     if (dbConnected && pool) {
       const [result] = await pool.execute(
-        `INSERT INTO admin_users (username, email, password_hash, full_name, role, is_active)
-         VALUES (?, ?, ?, ?, ?, 1)`,
+        `INSERT INTO admin_users (username, email, password_hash, full_name, role, is_active, token_version)
+         VALUES (?, ?, ?, ?, ?, 1, 1)`,
         [cleanUsername, cleanEmail, passHash, full_name.trim(), cleanRole]
       );
       await logAdminActivity(
@@ -2173,6 +2602,7 @@ app.post("/api/admin/users", requireAdminAuth, requireRole("Super Admin"), async
       full_name: full_name.trim(),
       role: cleanRole,
       is_active: 1,
+      token_version: 1,
       last_login: null,
       created_at: new Date().toISOString(),
     };
@@ -2188,6 +2618,109 @@ app.post("/api/admin/users", requireAdminAuth, requireRole("Super Admin"), async
     return res.status(500).json({
       success: false,
       message: "Gagal menambahkan akun admin (pastikan username/email belum dipakai).",
+      error: error.message,
+    });
+  }
+});
+
+// ============================================================================
+// ENDPOINT KELOLA STATUS & HAPUS AKUN ADMIN (SEC-008: TOKEN REVOCATION)
+// ============================================================================
+app.patch("/api/admin/users/:id/status", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
+  const { id } = req.params;
+  const { is_active } = req.body || {};
+  const targetId = Number(id);
+
+  if (targetId === req.adminUser.sub) {
+    return res.status(400).json({
+      success: false,
+      message: "Anda tidak dapat menonaktifkan akun Anda sendiri.",
+    });
+  }
+
+  const newStatus = is_active === 0 || is_active === false ? 0 : 1;
+
+  try {
+    if (dbConnected && pool) {
+      // Inkrementasi token_version saat status akun diubah agar seluruh token aktif segera dibatalkan (SEC-008)
+      const [result] = await pool.execute(
+        "UPDATE admin_users SET is_active = ?, token_version = token_version + 1 WHERE id = ?",
+        [newStatus, targetId]
+      );
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: "Pengguna tidak ditemukan." });
+      }
+    } else {
+      const u = fallbackStore.users.find((user) => user.id === targetId);
+      if (!u) {
+        return res.status(404).json({ success: false, message: "Pengguna tidak ditemukan." });
+      }
+      u.is_active = newStatus;
+      u.token_version = (u.token_version || 1) + 1;
+      saveFallbackUsers(fallbackStore.users);
+    }
+
+    await logAdminActivity(
+      req.adminUser.username,
+      "USER_STATUS",
+      `User ID #${targetId}`,
+      `Mengubah status akun menjadi ${newStatus === 1 ? "Aktif" : "Nonaktif"} (token lama dibatalkan)`
+    );
+
+    return res.json({
+      success: true,
+      message: `Status akun berhasil diubah menjadi ${newStatus === 1 ? "Aktif" : "Nonaktif"}.`,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Gagal memperbarui status akun.",
+      error: error.message,
+    });
+  }
+});
+
+app.delete("/api/admin/users/:id", requireAdminAuth, requireRole("Super Admin"), async (req, res) => {
+  const { id } = req.params;
+  const targetId = Number(id);
+
+  if (targetId === req.adminUser.sub) {
+    return res.status(400).json({
+      success: false,
+      message: "Anda tidak dapat menghapus akun Anda sendiri.",
+    });
+  }
+
+  try {
+    if (dbConnected && pool) {
+      const [result] = await pool.execute("DELETE FROM admin_users WHERE id = ?", [targetId]);
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: "Pengguna tidak ditemukan." });
+      }
+    } else {
+      const idx = fallbackStore.users.findIndex((u) => u.id === targetId);
+      if (idx === -1) {
+        return res.status(404).json({ success: false, message: "Pengguna tidak ditemukan." });
+      }
+      fallbackStore.users.splice(idx, 1);
+      saveFallbackUsers(fallbackStore.users);
+    }
+
+    await logAdminActivity(
+      req.adminUser.username,
+      "DELETE_USER",
+      `User ID #${targetId}`,
+      `Menghapus akun admin ID #${targetId}`
+    );
+
+    return res.json({
+      success: true,
+      message: "Akun admin berhasil dihapus.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Gagal menghapus akun admin.",
       error: error.message,
     });
   }
@@ -3091,7 +3624,20 @@ app.post("/api/artikel", requireAdminAuth, async (req, res) => {
       });
     }
 
-    let baseSlug = slugifyTitle(custom_slug || title_id) || `artikel-${Date.now()}`;
+    // SEC-007: Sanitasi Input Artikel (Anti-Stored XSS)
+    const cleanTitleId = sanitizePlainText(title_id);
+    const cleanTitleEn = sanitizePlainText(title_en || title_id);
+    const cleanContentId = sanitizeHtmlContent(content_id);
+    const cleanContentEn = sanitizeHtmlContent(content_en || content_id);
+
+    if (!cleanTitleId || !cleanContentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Judul dan isi artikel tidak boleh kosong setelah proses sanitasi keamanan.",
+      });
+    }
+
+    let baseSlug = slugifyTitle(custom_slug || cleanTitleId) || `artikel-${Date.now()}`;
     let slug = baseSlug;
 
     const cleanCategory = ["News", "Article", "Press Release"].includes(category)
@@ -3122,9 +3668,10 @@ app.post("/api/artikel", requireAdminAuth, async (req, res) => {
     const cleanImage = image_url || "/Logo_PSU_banner1.webp";
     const cleanTags =
       Array.isArray(tags) && tags.length > 0 ? tags : [cleanCategory, "PT Penilai Standar Uji"];
-    const cleanExcerptId =
-      excerpt_id || String(content_id).replace(/\s+/g, " ").trim().slice(0, 190) + "...";
-    const cleanExcerptEn = excerpt_en || cleanExcerptId;
+    const cleanExcerptId = sanitizePlainText(
+      excerpt_id || String(cleanContentId).replace(/\s+/g, " ").trim().slice(0, 190) + "..."
+    );
+    const cleanExcerptEn = sanitizePlainText(excerpt_en || cleanExcerptId);
 
     let newId = Date.now();
 
@@ -3142,12 +3689,12 @@ app.post("/api/artikel", requireAdminAuth, async (req, res) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
         [
           slug,
-          title_id,
-          title_en || title_id,
+          cleanTitleId,
+          cleanTitleEn,
           cleanExcerptId,
           cleanExcerptEn,
-          content_id,
-          content_en || content_id,
+          cleanContentId,
+          cleanContentEn,
           cleanImage,
           cleanAuthor,
           cleanCategory,
@@ -3165,12 +3712,12 @@ app.post("/api/artikel", requireAdminAuth, async (req, res) => {
       fallbackStore.articles.unshift({
         id: newId,
         slug,
-        title_id,
-        title_en: title_en || title_id,
+        title_id: cleanTitleId,
+        title_en: cleanTitleEn,
         excerpt_id: cleanExcerptId,
         excerpt_en: cleanExcerptEn,
-        content_id,
-        content_en: content_en || content_id,
+        content_id: cleanContentId,
+        content_en: cleanContentEn,
         image_url: cleanImage,
         author: cleanAuthor,
         category: cleanCategory,
@@ -3186,18 +3733,18 @@ app.post("/api/artikel", requireAdminAuth, async (req, res) => {
 
     // Pastikan foto sampul tercatat di galeri_artikel agar bisa digunakan lagi
     await ensureGalleryEntry({
-      title: `Sampul: ${String(title_id).slice(0, 55)}`,
+      title: `Sampul: ${String(cleanTitleId).slice(0, 55)}`,
       filename: path.basename(cleanImage),
       image_url: cleanImage,
       category: cleanImage.startsWith("/news/") ? "Artikel Upload" : "Banner Default",
-      alt_text: title_id,
+      alt_text: cleanTitleId,
       uploaded_by: req.adminUser?.full_name || cleanAuthor,
     });
 
     await logAdminActivity(
       req.adminUser?.username || "admin",
       "CREATE_ARTICLE",
-      title_id,
+      cleanTitleId,
       `Menambahkan ${cleanCategory} baru [${cleanStatus}] oleh ${cleanAuthor}`
     );
 
@@ -3207,12 +3754,12 @@ app.post("/api/artikel", requireAdminAuth, async (req, res) => {
       data: {
         id: newId,
         slug,
-        title_id,
-        title_en: title_en || title_id,
+        title_id: cleanTitleId,
+        title_en: cleanTitleEn,
         excerpt_id: cleanExcerptId,
         excerpt_en: cleanExcerptEn,
-        content_id,
-        content_en: content_en || content_id,
+        content_id: cleanContentId,
+        content_en: cleanContentEn,
         image_url: cleanImage,
         author: cleanAuthor,
         category: cleanCategory,
@@ -3293,14 +3840,23 @@ app.put("/api/artikel/:identifier", requireAdminAuth, async (req, res) => {
       is_featured,
     } = req.body || {};
 
-    const finalTitleId = title_id || current.title_id;
-    const finalTitleEn = title_en || finalTitleId;
-    const finalContentId = content_id || current.content_id;
-    const finalContentEn = content_en || finalContentId;
-    const finalExcerptId =
-      excerpt_id ||
-      String(finalContentId).replace(/\s+/g, " ").trim().slice(0, 190) + "...";
-    const finalExcerptEn = excerpt_en || finalExcerptId;
+    // SEC-007: Sanitasi Input Saat Pembaruan Artikel (Anti-Stored XSS)
+    const finalTitleId = title_id ? sanitizePlainText(title_id) : current.title_id;
+    const finalTitleEn = title_en
+      ? sanitizePlainText(title_en)
+      : title_id
+      ? sanitizePlainText(title_id)
+      : current.title_en;
+    const finalContentId = content_id ? sanitizeHtmlContent(content_id) : current.content_id;
+    const finalContentEn = content_en
+      ? sanitizeHtmlContent(content_en)
+      : content_id
+      ? sanitizeHtmlContent(content_id)
+      : current.content_en;
+    const finalExcerptId = excerpt_id
+      ? sanitizePlainText(excerpt_id)
+      : String(finalContentId).replace(/\s+/g, " ").trim().slice(0, 190) + "...";
+    const finalExcerptEn = excerpt_en ? sanitizePlainText(excerpt_en) : finalExcerptId;
     const finalImage = image_url || current.image_url;
 
     let finalAuthor = current.author;
@@ -3639,24 +4195,53 @@ app.delete("/api/artikel/:identifier", requireAdminAuth, requireRole("Super Admi
 });
 
 // ============================================================================
-// ENDPOINT PENCARIAN SERTIFIKAT PELANGGAN
+// ENDPOINT PENCARIAN SERTIFIKAT PELANGGAN (SEC-005 HARDENING)
 // ============================================================================
 app.get("/api/sertifikat/:submenu", generalApiLimiter, async (req, res) => {
   const { submenu } = req.params;
-  const noSertifikat = (req.query.no_sertifikat || "").trim();
+  const rawNoSertifikat = req.query.no_sertifikat;
 
-  const tableName = TABLE_MAP[submenu];
-  if (!tableName) {
+  // 1. Strict Whitelist Submenu dengan hasOwnProperty (Cegah Prototype Pollution)
+  if (
+    typeof submenu !== "string" ||
+    !Object.prototype.hasOwnProperty.call(TABLE_MAP, submenu)
+  ) {
     return res.status(400).json({
       success: false,
       message: "Kategori sub menu client tidak valid.",
     });
   }
+  const tableName = TABLE_MAP[submenu];
 
-  if (!noSertifikat) {
+  // 2. Validasi Keberadaan & Tipe Input Nomor Sertifikat
+  if (!rawNoSertifikat || typeof rawNoSertifikat !== "string") {
     return res.status(400).json({
       success: false,
       message: "Nomor sertifikat wajib diisi.",
+    });
+  }
+
+  const noSertifikat = rawNoSertifikat.trim();
+  if (noSertifikat.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Nomor sertifikat tidak boleh kosong.",
+    });
+  }
+
+  // 3. Batas Panjang Input (Maksimal 100 Karakter)
+  if (noSertifikat.length > 100) {
+    return res.status(400).json({
+      success: false,
+      message: "Nomor sertifikat melebihi batas panjang maksimal (100 karakter).",
+    });
+  }
+
+  // 4. Tolak Karakter Kontrol Terlarang dan Null Bytes
+  if (/[\x00-\x1f\x7f]/.test(noSertifikat)) {
+    return res.status(400).json({
+      success: false,
+      message: "Nomor sertifikat mengandung karakter terlarang.",
     });
   }
 
@@ -3723,4 +4308,17 @@ module.exports = {
   IPV4_MIN_PREFIX,
   IPV6_MIN_PREFIX,
   CLOUDFLARE_PROXY_CIDRS,
+  TABLE_MAP,
+  verifyPassword,
+  hashPassword,
+  sanitizeHtmlContent,
+  sanitizePlainText,
+  isOriginAllowed,
+  ALLOWED_ORIGIN_SET,
+  fallbackStore,
+  saveFallbackUsers,
+  loadFallbackUsers,
+  signJwt,
+  verifyJwt,
+  extractToken,
 };
