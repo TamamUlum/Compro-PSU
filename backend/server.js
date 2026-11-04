@@ -20,21 +20,75 @@ require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
 
-// Konfigurasi Topologi Trusted Proxy (SEC-004)
-// Menghilangkan kerentanan spoofing X-Forwarded-For dengan hanya mempercayai proxy terdaftar
-const rawTrustProxy = process.env.TRUST_PROXY;
-if (!rawTrustProxy || rawTrustProxy.trim() === "false") {
-  // Direct connection (tanpa reverse proxy yang dipercaya)
-  app.set("trust proxy", false);
-} else if (rawTrustProxy.trim() === "true") {
-  app.set("trust proxy", true);
-} else if (!isNaN(Number(rawTrustProxy.trim()))) {
-  app.set("trust proxy", Number(rawTrustProxy.trim()));
-} else {
-  // Loopback atau daftar subnet/IP yang dipercaya (contoh: "loopback", "127.0.0.1")
-  app.set("trust proxy", rawTrustProxy.trim());
+// Konfigurasi Topologi Trusted Reverse Proxy (SEC-004 Hardening)
+// Rentang IP resmi Cloudflare (IPv4 & IPv6) untuk topologi CDN
+const CLOUDFLARE_PROXY_CIDRS = [
+  "173.245.48.0/20",
+  "103.21.244.0/22",
+  "103.22.200.0/22",
+  "103.31.4.0/22",
+  "141.101.64.0/18",
+  "108.162.192.0/18",
+  "190.93.240.0/20",
+  "188.114.96.0/20",
+  "197.234.240.0/22",
+  "198.41.128.0/17",
+  "162.158.0.0/15",
+  "104.16.0.0/13",
+  "104.24.0.0/14",
+  "172.64.0.0/13",
+  "131.0.72.0/22",
+  "2400:cb00::/32",
+  "2606:4700::/32",
+  "2803:f800::/32",
+  "2405:b500::/32",
+  "2405:8100::/32",
+  "2a06:98c0::/29",
+  "2c0f:f248::/32",
+];
+
+function configureTrustProxy(expressApp) {
+  const envVal = (process.env.TRUST_PROXY || "false").trim();
+  const lowerVal = envVal.toLowerCase();
+
+  if (lowerVal === "false" || lowerVal === "none" || lowerVal === "0") {
+    // Direct connection: Forwarded headers TIDAK DIPERCAYA
+    expressApp.set("trust proxy", false);
+  } else if (lowerVal === "loopback") {
+    // Topologi reverse proxy lokal (Apache / Nginx / cPanel Passenger pada 127.0.0.1)
+    expressApp.set("trust proxy", "loopback");
+  } else if (lowerVal === "private" || lowerVal === "lan") {
+    // Jaringan privat internal (Docker / LAN / Kubernetes)
+    expressApp.set("trust proxy", ["loopback", "linklocal", "uniquelocal"]);
+  } else if (lowerVal === "cloudflare") {
+    // Topologi Cloudflare CDN: Hanya percaya loopback lokal + rentang IP resmi Cloudflare
+    expressApp.set("trust proxy", ["loopback", ...CLOUDFLARE_PROXY_CIDRS]);
+  } else if (lowerVal === "true") {
+    // Peringatan keamanan: trust proxy: true mempercayai SEMUA hop tanpa verifikasi
+    console.warn("[SECURITY WARNING] TRUST_PROXY disetel ke 'true'. Seluruh forwarded header dipercaya.");
+    expressApp.set("trust proxy", true);
+  } else if (!isNaN(Number(envVal))) {
+    // Fixed hop count: Berikan peringatan agar menggunakan IP/CIDR spesifik
+    console.warn(`[SECURITY ADVISORY] TRUST_PROXY menggunakan jumlah hop tetap (${envVal}). Disarankan menggunakan IP/CIDR (misal: 'loopback' atau IP Nginx/Apache) untuk mencegah bypass koneksi langsung.`);
+    expressApp.set("trust proxy", Number(envVal));
+  } else {
+    // Daftar IP atau subnet CIDR spesifik yang dipisahkan koma
+    const ipList = envVal.split(",").map((s) => s.trim()).filter(Boolean);
+    const finalProxies = [];
+    for (const item of ipList) {
+      if (item.toLowerCase() === "cloudflare") {
+        finalProxies.push(...CLOUDFLARE_PROXY_CIDRS);
+      } else {
+        finalProxies.push(item);
+      }
+    }
+    expressApp.set("trust proxy", finalProxies);
+  }
 }
+
+configureTrustProxy(app);
 const PORT = Number(process.env.PORT) || 5000;
+const HOST = process.env.HOST || "0.0.0.0";
 
 // Validasi fail-closed JWT_SECRET: Harus disetel di .env dan memiliki panjang minimal 32 karakter
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -611,7 +665,19 @@ function validateEmail(email) {
 // ============================================================================
 // Menggunakan req.ip yang dihitung Express secara aman sesuai konfigurasi trust proxy.
 // Menghapus parsing mentah req.headers["x-forwarded-for"] untuk mencegah IP spoofing.
+// Header cf-connecting-ip HANYA dipercaya jika socket terbukti dari trusted proxy (req.ips.length > 0).
 function getClientIp(req) {
+  if (req.ips && req.ips.length > 0) {
+    const cfIp = req.headers["cf-connecting-ip"];
+    if (typeof cfIp === "string" && cfIp.trim()) {
+      let cleanedCfIp = cfIp.trim();
+      if (cleanedCfIp.startsWith("::ffff:")) {
+        cleanedCfIp = cleanedCfIp.slice(7);
+      }
+      return cleanedCfIp;
+    }
+  }
+
   let ip = req.ip || req.socket?.remoteAddress || "127.0.0.1";
   if (typeof ip === "string" && ip.startsWith("::ffff:")) {
     ip = ip.slice(7);
@@ -655,7 +721,7 @@ setInterval(() => {
  */
 function authRateLimiter(req, res, next) {
   const clientIp = getClientIp(req);
-  const normalizedUsername = String(req.body?.username || "").trim().toLowerCase();
+  const normalizedUsername = String(req.body?.username || req.body?.email || "").trim().toLowerCase();
   const accountKey = `auth_acc_${clientIp}_${normalizedUsername || "anon"}`;
   const ipKey = `auth_ip_${clientIp}`;
   const now = Date.now();
@@ -1616,8 +1682,8 @@ app.get("/", (req, res) => {
 // ============================================================================
 app.post("/api/auth/login", authRateLimiter, async (req, res) => {
   try {
-    const { username, password } = req.body || {};
-    const identifier = String(username || "").trim();
+    const { username, password, email } = req.body || {};
+    const identifier = String(username || email || "").trim();
     const rawPassword = String(password || "");
 
     if (!identifier || !rawPassword) {
@@ -3527,12 +3593,18 @@ app.get("/api/sertifikat/:submenu", generalApiLimiter, async (req, res) => {
 
 if (require.main === module) {
   initDatabase().then(() => {
-    app.listen(PORT, () => {
+    app.listen(PORT, HOST, () => {
       console.log(
-        `Server API Tracking Sertifikat & Dashboard Artikel berjalan di http://127.0.0.1:${PORT}`
+        `Server API Tracking Sertifikat & Dashboard Artikel berjalan di http://${HOST}:${PORT}`
       );
     });
   });
 }
 
-module.exports = { app, initDatabase };
+module.exports = {
+  app,
+  initDatabase,
+  configureTrustProxy,
+  getClientIp,
+  CLOUDFLARE_PROXY_CIDRS,
+};
