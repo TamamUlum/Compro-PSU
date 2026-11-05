@@ -109,9 +109,9 @@ const menuLayanan = [
     href: "/layanan/kalibrasi",
     linkParent: true,
     children: [
-      { 
-        label: "Legalitas", 
-        href: "/layanan/kalibrasi/legalitas" 
+      {
+        label: "Legalitas",
+        href: "/layanan/kalibrasi/legalitas"
       },
       {
         label: "Ruang Lingkup",
@@ -207,7 +207,7 @@ const menuLinks = [
   { label: "Kontak", href: "/kontak" },
   {
     label: "Lacak",
-    href: "#",
+    href: "https://silapp.penilaistandaruji.com/",
     target: "_blank",
     external: true,
     cta: true,
@@ -402,15 +402,14 @@ export default function Navbar() {
         onMouseLeave={() => canHover() && closeSubtree(item.id)}
       >
         <div
-          className={`navbar__subrow ${
-            item.children.some(
-              (child) =>
-                (child.href && isActive(child.href)) ||
-                child.children?.some((grandchild) => isActive(grandchild.href))
-            )
+          className={`navbar__subrow ${item.children.some(
+            (child) =>
+              (child.href && isActive(child.href)) ||
+              child.children?.some((grandchild) => isActive(grandchild.href))
+          )
               ? "is-active"
               : ""
-          }`}
+            }`}
         >
           {item.linkParent && (
             <Link {...linkProps(item.href)} className="navbar__subheading-link">

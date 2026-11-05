@@ -271,9 +271,7 @@ export default function ExhouseTraining() {
                 className="exhouse-sub__related-card"
               >
                 <span className="exhouse-sub__related-title">
-                  {lang === "en"
-                    ? "Training Services Overview &rarr;"
-                    : "Pusat Lembaga Pelatihan &rarr;"}
+                  Training Centre &rarr;
                 </span>
                 <span className="exhouse-sub__related-desc">
                   {lang === "en"

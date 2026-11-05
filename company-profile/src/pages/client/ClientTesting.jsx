@@ -19,7 +19,6 @@ export default function ClientTesting() {
   const [noSertifikat, setNoSertifikat] = useState("");
   const [results, setResults] = useState([]);
   const [workflow, setWorkflow] = useState(null);
-  const [dataSource, setDataSource] = useState(SILAPP_DOMAIN);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchedQuery, setSearchedQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -51,22 +50,20 @@ export default function ClientTesting() {
       } else if (status >= 400 || !payload.success) {
         setResults([]);
         setWorkflow(null);
-        setErrorMsg(payload.message || `Terjadi kesalahan saat memeriksa sertifikat pada sistem API ${SILAPP_DOMAIN}.`);
+        setErrorMsg(payload.message || t("Terjadi kesalahan saat memeriksa sertifikat."));
       } else if (payload.mode === "workflow" || payload.workflow) {
         setWorkflow(payload.workflow || payload.data?.[0]);
         setResults(Array.isArray(payload.data) ? payload.data : []);
-        setDataSource(payload.source || SILAPP_DOMAIN);
       } else {
         setWorkflow(null);
         setResults(Array.isArray(payload.data) ? payload.data : []);
-        setDataSource(payload.source || SILAPP_DOMAIN);
       }
     } catch {
       setHasSearched(true);
       setResults([]);
       setWorkflow(null);
       setErrorMsg(
-        `Gagal terhubung ke API ${SILAPP_DOMAIN} maupun backend server. Silakan pastikan koneksi jaringan aktif dan coba beberapa saat lagi.`
+        t("Gagal terhubung ke server. Silakan pastikan koneksi jaringan aktif dan coba beberapa saat lagi.")
       );
     } finally {
       setLoading(false);
@@ -111,12 +108,8 @@ export default function ClientTesting() {
             <LocalizedText as="h1" className="cert-tracker__title">
               Lembaga Pengujian
             </LocalizedText>
-            <div className="cert-tracker__api-pill">
-              <span className="cert-tracker__api-pulse" />
-              <span>Data Real-Time API: <strong>{SILAPP_DOMAIN}</strong></span>
-            </div>
             <LocalizedText as="p" className="cert-tracker__subtitle">
-              Masukkan nomor sertifikat laporan pengujian atau kode lacak SILAPP untuk memverifikasi keabsahan laporan hasil uji Laboratorium Pengujian PT PSU.
+              Masukkan nomor sertifikat untuk mengecek status dan informasi sertifikat yang terdaftar pada layanan ini. Pencarian hanya menampilkan sertifikat yang sesuai dengan nomor yang diinputkan.
             </LocalizedText>
           </header>
 
@@ -133,7 +126,7 @@ export default function ClientTesting() {
                   <input
                     type="text"
                     className="cert-tracker__input"
-                    placeholder={t("Nomor Sertifikat / Kode Lacak (contoh: PSU-LP-2026-BKLN atau SLP26-...)")}
+                    placeholder={t("Masukkan Nomor Sertifikat (contoh: PSU-LP-2026-BKLN)")}
                     value={noSertifikat}
                     onChange={(e) => setNoSertifikat(e.target.value)}
                     aria-label={t("Nomor Sertifikat")}
@@ -155,19 +148,18 @@ export default function ClientTesting() {
                 </button>
               </form>
 
-              {hasSearched && !errorMsg && results.length > 0 && (
+              {hasSearched && !errorMsg && (
                 <div className="cert-tracker__meta">
-                  <span className="cert-tracker__source-tag">
-                    Terverifikasi via {dataSource}
+                  <span>
+                    {results.length} {t("sertifikat")}
                   </span>
                 </div>
               )}
             </div>
 
             <div className="cert-tracker__format-hint">
-              <LocalizedText>Contoh Nomor Sertifikat / Kode Lacak:</LocalizedText>
+              <LocalizedText>Contoh Nomor Sertifikat:</LocalizedText>
               <code>PSU-LP-2026-BKLN</code>
-              <code>SLP26-LAB-0192</code>
             </div>
 
             {errorMsg && (
@@ -189,9 +181,8 @@ export default function ClientTesting() {
                   <LocalizedText>Data Sertifikat Tidak Ditemukan</LocalizedText>
                 </p>
                 <p>
-                  {t("Nomor sertifikat / kode lacak")} <strong>{searchedQuery}</strong>{" "}
-                  {t("tidak ditemukan pada database")} <strong>{t("Lembaga Pengujian")}</strong>{" "}
-                  {t("di sistem API")} <strong>{SILAPP_DOMAIN}</strong>.
+                  {t("Nomor sertifikat")} <strong>{searchedQuery}</strong>{" "}
+                  {t("tidak ditemukan pada database")} <strong>{t("Lembaga Pengujian")}</strong>.
                 </p>
               </div>
             )}

@@ -226,7 +226,7 @@ async function main() {
 
   total++;
   if (
-    await runTest("3.3 Seluruh 4 halaman klien mengimpor silappTracker & menampilkan badge SILAPP", async () => {
+    await runTest("3.3 Seluruh 4 halaman klien terhubung ke silappTracker & bersih dari label 'Data Real-Time API'", async () => {
       for (const [name, code] of [
         ["ClientProductCertification", productJsx],
         ["ClientTesting", testingJsx],
@@ -238,12 +238,12 @@ async function main() {
           `${name} harus mengimpor SilappWorkflowTracker`
         );
         assert.ok(
-          code.includes("SILAPP_DOMAIN"),
-          `${name} harus menggunakan SILAPP_DOMAIN`
-        );
-        assert.ok(
           code.includes("fetchCertificateFromApi"),
           `${name} harus memanggil fetchCertificateFromApi`
+        );
+        assert.ok(
+          !code.includes("Data Real-Time API"),
+          `${name} tidak boleh menampilkan teks 'Data Real-Time API'`
         );
       }
     })

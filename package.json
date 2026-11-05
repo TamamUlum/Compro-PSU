@@ -7,19 +7,20 @@
   "scripts": {
     "start": "node start_all.js",
     "dev": "node start_all.js",
+    "build": "npm --prefix company-profile run build",
     "backend": "node backend/server.js",
     "frontend": "npm --prefix company-profile run dev"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nugrahawahyuardyansyah/compro-PSU.git"
+    "url": "git+https://github.com/TamamUlum/Compro-PSU.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "homepage": "https://github.com/nugrahawahyuardyansyah/compro-PSU#readme",
+  "homepage": "https://github.com/TamamUlum/Compro-PSU#readme",
   "bugs": {
-    "url": "https://github.com/nugrahawahyuardyansyah/compro-PSU/issues"
+    "url": "https://github.com/TamamUlum/Compro-PSU/issues"
   },
   "dependencies": {
     "cors": "^2.8.6",

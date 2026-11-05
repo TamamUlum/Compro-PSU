@@ -14,7 +14,7 @@ export default function SilappWorkflowTracker({ workflow, onReset }) {
         <div className="cert-tracker__workflow-title-wrap">
           <div className="cert-tracker__workflow-badge">
             <span className="cert-tracker__workflow-pulse" />
-            <span>Alur Permohonan Aktif SILAPP</span>
+            <span>Alur Permohonan Aktif</span>
           </div>
           <h3 className="cert-tracker__workflow-appno">
             {workflow.application_no || workflow.tracking_code}
@@ -22,11 +22,6 @@ export default function SilappWorkflowTracker({ workflow, onReset }) {
           <p className="cert-tracker__workflow-service">
             {workflow.service_name || "Layanan Penilaian Standar Uji"}
           </p>
-        </div>
-
-        <div className="cert-tracker__workflow-source-pill">
-          <span>API Terverifikasi:</span>
-          <strong>{SILAPP_DOMAIN}</strong>
         </div>
       </div>
 

@@ -19,7 +19,6 @@ export default function ClientCalibration() {
   const [noSertifikat, setNoSertifikat] = useState("");
   const [results, setResults] = useState([]);
   const [workflow, setWorkflow] = useState(null);
-  const [dataSource, setDataSource] = useState(SILAPP_DOMAIN);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchedQuery, setSearchedQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -51,22 +50,20 @@ export default function ClientCalibration() {
       } else if (status >= 400 || !payload.success) {
         setResults([]);
         setWorkflow(null);
-        setErrorMsg(payload.message || `Terjadi kesalahan saat memeriksa sertifikat pada sistem API ${SILAPP_DOMAIN}.`);
+        setErrorMsg(payload.message || t("Terjadi kesalahan saat memeriksa sertifikat."));
       } else if (payload.mode === "workflow" || payload.workflow) {
         setWorkflow(payload.workflow || payload.data?.[0]);
         setResults(Array.isArray(payload.data) ? payload.data : []);
-        setDataSource(payload.source || SILAPP_DOMAIN);
       } else {
         setWorkflow(null);
         setResults(Array.isArray(payload.data) ? payload.data : []);
-        setDataSource(payload.source || SILAPP_DOMAIN);
       }
     } catch {
       setHasSearched(true);
       setResults([]);
       setWorkflow(null);
       setErrorMsg(
-        `Gagal terhubung ke API ${SILAPP_DOMAIN} maupun backend server. Silakan pastikan koneksi jaringan aktif dan coba beberapa saat lagi.`
+        t("Gagal terhubung ke server. Silakan pastikan koneksi jaringan aktif dan coba beberapa saat lagi.")
       );
     } finally {
       setLoading(false);
@@ -111,12 +108,8 @@ export default function ClientCalibration() {
             <LocalizedText as="h1" className="cert-tracker__title">
               Lembaga Kalibrasi
             </LocalizedText>
-            <div className="cert-tracker__api-pill">
-              <span className="cert-tracker__api-pulse" />
-              <span>Data Real-Time API: <strong>{SILAPP_DOMAIN}</strong></span>
-            </div>
             <LocalizedText as="p" className="cert-tracker__subtitle">
-              Masukkan nomor sertifikat kalibrasi atau kode lacak SILAPP untuk memverifikasi keabsahan sertifikat dan rekam ketertelusuran kalibrasi alat.
+              Masukkan nomor sertifikat untuk mengecek status dan informasi sertifikat yang terdaftar pada layanan ini. Pencarian hanya menampilkan sertifikat yang sesuai dengan nomor yang diinputkan.
             </LocalizedText>
           </header>
 
@@ -126,14 +119,14 @@ export default function ClientCalibration() {
                 <div className="cert-tracker__input-wrap">
                   <span className="cert-tracker__search-icon" aria-hidden="true">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="11" r="7" stroke="currentColor" strokeWidth="2" />
                       <path d="M20 20L16.5 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   </span>
                   <input
                     type="text"
                     className="cert-tracker__input"
-                    placeholder={t("Nomor Sertifikat / Kode Lacak (contoh: PSU-LK-2026-KLMN atau SLP26-...)")}
+                    placeholder={t("Masukkan Nomor Sertifikat (contoh: PSU-LK-2026-KLMN)")}
                     value={noSertifikat}
                     onChange={(e) => setNoSertifikat(e.target.value)}
                     aria-label={t("Nomor Sertifikat")}
@@ -155,19 +148,18 @@ export default function ClientCalibration() {
                 </button>
               </form>
 
-              {hasSearched && !errorMsg && results.length > 0 && (
+              {hasSearched && !errorMsg && (
                 <div className="cert-tracker__meta">
-                  <span className="cert-tracker__source-tag">
-                    Terverifikasi via {dataSource}
+                  <span>
+                    {results.length} {t("sertifikat")}
                   </span>
                 </div>
               )}
             </div>
 
             <div className="cert-tracker__format-hint">
-              <LocalizedText>Contoh Nomor Sertifikat / Kode Lacak:</LocalizedText>
+              <LocalizedText>Contoh Nomor Sertifikat:</LocalizedText>
               <code>PSU-LK-2026-KLMN</code>
-              <code>SLP26-KAL-0045</code>
             </div>
 
             {errorMsg && (
@@ -189,9 +181,8 @@ export default function ClientCalibration() {
                   <LocalizedText>Data Sertifikat Tidak Ditemukan</LocalizedText>
                 </p>
                 <p>
-                  {t("Nomor sertifikat / kode lacak")} <strong>{searchedQuery}</strong>{" "}
-                  {t("tidak ditemukan pada database")} <strong>{t("Lembaga Kalibrasi")}</strong>{" "}
-                  {t("di sistem API")} <strong>{SILAPP_DOMAIN}</strong>.
+                  {t("Nomor sertifikat")} <strong>{searchedQuery}</strong>{" "}
+                  {t("tidak ditemukan pada database")} <strong>{t("Lembaga Kalibrasi")}</strong>.
                 </p>
               </div>
             )}
