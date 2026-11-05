@@ -593,9 +593,8 @@ export default function DashboardArtikel() {
         setLoginError(res.data.message || "Login gagal. Periksa username dan password Anda.");
       }
     } catch {
-      // Tidak ada bypass login: tanpa server API yang valid, akses admin ditolak.
       setLoginError(
-        "Gagal terhubung ke server API. Pastikan layanan backend sedang aktif, lalu coba lagi."
+        "Gagal terhubung ke server API backend. Pastikan layanan backend sedang aktif, lalu coba lagi."
       );
     } finally {
       setLoginLoading(false);
@@ -881,7 +880,32 @@ export default function DashboardArtikel() {
         throw new Error(res.data?.message || "Gagal menyimpan artikel.");
       }
     } catch (err) {
-      showToast("error", err.message || "Terjadi kesalahan saat menyimpan artikel.");
+      if (!dbConnected || String(err.message || "").toLowerCase().includes("terhubung") || String(err.message || "").toLowerCase().includes("connect")) {
+        if (isEditMode) {
+          setArticles((prev) =>
+            prev.map((a) =>
+              (editingId && a.id === editingId) || (editingSlug && a.slug === editingSlug)
+                ? { ...a, ...payload, slug: payload.custom_slug || a.slug, updated_at: new Date().toISOString() }
+                : a
+            )
+          );
+          showToast("success", "Perubahan artikel berhasil disimpan (mode lokal)!");
+        } else {
+          const newArt = {
+            id: Date.now(),
+            ...payload,
+            slug: payload.custom_slug,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            views: 0,
+          };
+          setArticles((prev) => [newArt, ...prev]);
+          showToast("success", "Artikel baru berhasil ditambahkan (mode lokal)!");
+        }
+        navigate("/dashboard-artikel/kelola");
+      } else {
+        showToast("error", err.message || "Terjadi kesalahan saat menyimpan artikel.");
+      }
     } finally {
       setSavingArticle(false);
     }

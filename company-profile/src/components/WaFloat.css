@@ -69,3 +69,17 @@
     display: none;
   }
 }
+
+@media (max-width: 360px) {
+  .wa-float {
+    right: 12px;
+    bottom: 12px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .wa-float svg {
+    width: 24px;
+    height: 24px;
+  }
+}

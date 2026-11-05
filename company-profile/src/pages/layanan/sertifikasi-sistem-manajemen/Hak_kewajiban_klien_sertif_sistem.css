@@ -232,6 +232,11 @@
     padding: 20px 16px;
   }
 
+  .hakkewajiban-sub__related-links {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
   .hakkewajiban-sub__content-body p {
     text-align: left;
   }

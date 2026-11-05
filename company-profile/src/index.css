@@ -55,11 +55,10 @@ body {
 }
 
 #root {
-  width: 1126px;
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -115,7 +114,14 @@ code {
 }
 
 html,
-body,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  background: #fff;
+  overflow-x: clip;
+}
+
 #root {
   margin: 0;
   padding: 0;

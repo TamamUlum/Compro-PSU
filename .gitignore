@@ -156,9 +156,50 @@ ehthumbs.db
 .node_repl_history
 
 # ----------------------------------------------------------------------------
-# 7. INTERNAL SECURITY AUDIT, REMEDIATION & IMPLEMENTATION REPORTS
-# Seluruh dokumen audit, hasil vulnerability scan, dan catatan verifikasi
-# internal PT PSU tidak boleh masuk ke repository publik atau hosting.
+# 7. INTERNAL DOCUMENTATION, AUDIT, GUIDES & USER MANUALS
+# Seluruh dokumen internal, panduan operasional internal, user guide,
+# dokumen Word (.docx), catatan perbaikan, dan laporan pengujian tidak
+# boleh diunggah ke repository publik GitHub.
+# ----------------------------------------------------------------------------
+documentation/
+documentation/**
+docs/internal/
+internal-docs/
+audit-internal/
+security-audit/
+security-reports/
+remediation-reports/
+user-guide/
+internal-audit/
+
+# Office Documents, Spreadsheets & Word Guides
+*.docx
+*.doc
+*.pptx
+*.ppt
+*.xlsx
+*.xls
+*.odt
+*.ods
+
+# Deployment & Internal Operational Guides
+DEPLOYMENT_GUIDE_*.md
+DEPLOYMENT_*.md
+PANDUAN_*.md
+PANDUAN_*.docx
+PRODUCTION_SECURITY_CHECKLIST.md
+DEPLOYMENT_ROLLBACK_GUIDE.md
+
+# Python Doc Generator Scripts & Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ----------------------------------------------------------------------------
+# 8. INTERNAL SECURITY AUDIT, REMEDIATION & IMPLEMENTATION REPORTS
+# Seluruh dokumen audit keamanan, hasil vulnerability register, catatan
+# mitigasi, dan laporan verifikasi teknis internal.
 # ----------------------------------------------------------------------------
 SECURITY_*.md
 SECURITY_*.txt
@@ -170,7 +211,7 @@ SECURITY_*.pdf
 *SECURITY_HARDENING*
 *SECURITY_REMAINING_RISKS*
 
-# Internal technical phase reports & immutability logs
+# Internal technical phase reports, audit logs & verification notes
 CONTENT_IMMUTABILITY_VERIFICATION.md
 GRID_LAYOUT_AUDIT_REPORT.md
 IMAGE_METADATA_IMPLEMENTATION_REPORT.md
@@ -186,16 +227,28 @@ UIUX_FINAL_REFINEMENT_REPORT.md
 UNIVERSAL_JSONLD_COVERAGE_REPORT.md
 WHATSAPP_CONTEXT_MAPPING.md
 GITIGNORE_AUDIT_REPORT.md
+RESPONSIVE_*.md
 
-# Internal audit directories
-audit-internal/
-security-audit/
-security-reports/
-remediation-reports/
-internal-security-docs/
+# Generic catch-all patterns for internal reports and verification logs
+*_REPORT.md
+*_AUDIT.md
+*_VERIFICATION.md
+*_IMPLEMENTATION.md
+*_REMEDIATION.md
+*_CHECKLIST.md
+*_PLAN.md
 
 # AI agent local working directories & lockfiles
 .agents/
 claude/
 agents/
 skills.lock
+
+# ----------------------------------------------------------------------------
+# 9. EXPLICIT ALLOWLIST: PRESERVE OFFICIAL PUBLIC REPOSITORY ASSETS & DOCS
+# ----------------------------------------------------------------------------
+!README.md
+!company-profile/README.md
+!CHANGELOG.md
+!company-profile/public/**/*.pdf
+!company-profile/dist/**/*.pdf

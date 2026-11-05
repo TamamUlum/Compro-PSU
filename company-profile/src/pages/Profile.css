@@ -487,11 +487,17 @@
 }
 
 @media (max-width: 720px) {
-  .profile-page { padding: 32px 0 56px; }
+  .profile-page {
+    width: min(100% - 32px, 1180px);
+    padding: 32px 0 56px;
+  }
   .profile-page__section-title { font-size: 1.375rem; }
 }
 
 @media (max-width: 600px) {
+  .profile-page {
+    width: min(100% - 24px, 1180px);
+  }
   .timeline-row { margin-bottom: 56px; }
   .timeline-node { width: 112px; }
   .row-left .line-in, .row-left .line-out-v1 { left: 56px; }
@@ -504,25 +510,68 @@
   .sejarah__timeline-content p { font-size: 0.78rem; line-height: 1.55; }
 }
 
-@media (max-width: 480px) {
-  .about-showcase { align-items: center; }
-  .about-showcase__portrait { width: 40%; }
-  .about-showcase__overlay-text { padding: 32px 2px 12px; font-size: clamp(0.66rem, 2.8vw, 0.72rem); line-height: 1.3; }
-  .about-showcase__overlay-text strong { font-size: clamp(0.72rem, 3vw, 0.78rem); margin-bottom: 4px; }
-  .about-showcase__landscape { min-width: 0; margin-left: -32px; padding: 20px 12px 20px 46px; }
-  .about-showcase__text-content p { font-size: 0.7rem; line-height: 1.45; margin-bottom: 7px; }
+@media (max-width: 560px) {
+  .about-showcase {
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0 36px;
+  }
+  .about-showcase__portrait {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto 16px;
+  }
+  .about-showcase__img-wrapper {
+    height: 320px;
+  }
+  .about-showcase__overlay-text {
+    padding: 24px 12px 14px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .about-showcase__overlay-text strong {
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+  }
+  .about-showcase__landscape {
+    min-width: 0;
+    margin-left: 0;
+    width: 100%;
+    padding: 24px 20px;
+    border-radius: 14px;
+  }
+  .about-showcase__text-content p {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
   
-  .vision-mission-showcase { gap: 12px; }
-  .vision-mission__image-side { width: 38%; }
-  .vision-mission__photo { min-height: 360px; }
-  .vision-mission__header-box { padding: 14px 12px; margin-bottom: 20px; }
-  .vision-mission__header-box h2 { font-size: 1.15rem; }
-  .vision-mission__header-box h3 { font-size: 0.75rem; }
-  .vision-mission__label { font-size: 1.2rem; margin-bottom: 8px; }
-  .vision-mission__desc, .vision-mission__list { font-size: 0.72rem; line-height: 1.5; }
+  .vision-mission-showcase {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .vision-mission__image-side {
+    width: 100%;
+  }
+  .vision-mission__photo {
+    min-height: 220px;
+    height: 240px;
+  }
+  .vision-mission__header-box {
+    padding: 18px 16px;
+    margin-bottom: 20px;
+  }
+  .vision-mission__header-box h2 { font-size: 1.25rem; }
+  .vision-mission__header-box h3 { font-size: 0.85rem; }
+  .vision-mission__label { font-size: 1.3rem; margin-bottom: 8px; }
+  .vision-mission__desc,
+  .vision-mission__list {
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
 
-  .commitment-section { margin-top: 60px; padding: 20px 0; }
-  .commitment-wrapper::before { font-size: 5rem; top: -35px; }
-  .commitment__title { font-size: 1.5rem; margin-bottom: 24px; }
-  .commitment__desc { font-size: 0.95rem; line-height: 1.6; }
+  .commitment-section { margin-top: 50px; padding: 20px 0; }
+  .commitment-wrapper::before { font-size: 4.5rem; top: -30px; }
+  .commitment__title { font-size: 1.45rem; margin-bottom: 20px; word-break: break-word; }
+  .commitment__desc { font-size: 0.92rem; line-height: 1.6; }
 }

@@ -171,9 +171,17 @@
   line-height: 1.75;
 }
 
+@media (max-width: 900px) and (min-width: 601px) {
+  .org__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
 @media (max-width: 600px) {
   .org {
     padding: 32px 0 56px;
+    width: min(100% - 24px, 1180px);
   }
 
   .org__title {
@@ -185,6 +193,8 @@
     grid-auto-columns: auto;
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
+    margin: 0;
+    padding: 0;
     overflow-x: visible;
   }
 

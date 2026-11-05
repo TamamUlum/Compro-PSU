@@ -258,6 +258,11 @@
     padding: 20px 16px;
   }
 
+  .proses-sub__related-links {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
   .proses-sub__step-item {
     flex-direction: column;
     gap: 12px;

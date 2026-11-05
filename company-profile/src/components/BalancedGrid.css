@@ -35,8 +35,12 @@
 }
 
 @media (max-width: 600px) {
+  .balanced-grid {
+    gap: 16px;
+  }
   .balanced-grid__row {
     grid-template-columns: 1fr !important;
+    gap: 16px !important;
   }
 }
 

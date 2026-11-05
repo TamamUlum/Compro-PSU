@@ -147,12 +147,14 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  flex: 1 1 520px;
+  flex: 1 1 min(100%, 520px);
+  min-width: 0;
 }
 
 .cert-tracker__input-wrap {
   position: relative;
-  flex: 1 1 320px;
+  flex: 1 1 min(100%, 320px);
+  min-width: 0;
   max-width: 480px;
 }
 
@@ -480,6 +482,12 @@
     padding: 16px;
   }
 
+  .cert-tracker__input-wrap {
+    width: 100%;
+    max-width: none;
+    flex: 1 1 100%;
+  }
+
   .cert-tracker__format-hint {
     padding: 0 16px 14px;
   }
@@ -489,3 +497,326 @@
     justify-content: center;
   }
 }
+
+@media (max-width: 375px) {
+  .cert-tracker {
+    padding: 20px 12px 40px;
+  }
+  .cert-tracker__information {
+    padding: 20px 14px;
+  }
+  .cert-tracker__toolbar {
+    padding: 14px 12px;
+  }
+}
+
+/* ============================================================================
+   INTEGRASI API SILAPP (SILAPP.penilaistandaruji.com) & WORKFLOW TRACKER STYLES
+   ============================================================================ */
+
+.cert-tracker__api-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(13, 35, 58, 0.05);
+  border: 1px solid rgba(196, 154, 60, 0.35);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: var(--psu-navy);
+  margin-top: 10px;
+}
+
+.cert-tracker__api-pulse {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: silappPulse 2s infinite;
+}
+
+@keyframes silappPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.cert-tracker__source-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0369a1;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.cert-tracker__workflow {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px clamp(16px, 3vw, 28px);
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(13, 35, 58, 0.06);
+}
+
+.cert-tracker__workflow-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cert-tracker__workflow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0d233a;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.cert-tracker__workflow-pulse {
+  width: 7px;
+  height: 7px;
+  background: #0284c7;
+  border-radius: 50%;
+  animation: silappPulse 2s infinite;
+}
+
+.cert-tracker__workflow-appno {
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  font-weight: 700;
+  color: var(--psu-navy);
+  margin: 0 0 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.cert-tracker__workflow-service {
+  font-size: 0.92rem;
+  color: var(--psu-muted);
+  margin: 0;
+}
+
+.cert-tracker__workflow-source-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.cert-tracker__workflow-source-pill strong {
+  color: #0369a1;
+  font-weight: 700;
+}
+
+.cert-tracker__progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cert-tracker__progress-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+}
+
+.cert-tracker__progress-stage {
+  color: #334155;
+}
+
+.cert-tracker__progress-pct {
+  font-weight: 700;
+  color: #0284c7;
+}
+
+.cert-tracker__progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.cert-tracker__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c49a3c 0%, #10b981 100%);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cert-tracker__status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.cert-tracker__status-box {
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cert-tracker__status-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cert-tracker__status-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.cert-tracker__steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cert-tracker__steps-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--psu-navy);
+}
+
+.cert-tracker__stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cert-tracker__step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.cert-tracker__step--done {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.cert-tracker__step--current {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.cert-tracker__step-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #cbd5e1;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.cert-tracker__step--done .cert-tracker__step-dot {
+  background: #10b981;
+}
+
+.cert-tracker__step--current .cert-tracker__step-dot {
+  background: #3b82f6;
+}
+
+.cert-tracker__step-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.cert-tracker__step-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.cert-tracker__step-status {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.cert-tracker__step--done .cert-tracker__step-status {
+  color: #15803d;
+}
+
+.cert-tracker__step--current .cert-tracker__step-status {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.cert-tracker__workflow-footer {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cert-tracker__btn--portal {
+  background: #0284c7;
+  color: #ffffff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cert-tracker__btn--portal:hover {
+  background: #0369a1;
+  color: #ffffff;
+}
+
+.cert-tracker__btn--secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.cert-tracker__btn--secondary:hover {
+  background: #e2e8f0;
+}
+

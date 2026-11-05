@@ -72,6 +72,8 @@ function App() {
 
   const isDashboardRoute =
     location.pathname.startsWith("/dashboard-artikel") ||
+    location.pathname.startsWith("/dasboard-artikel") ||
+    location.pathname.startsWith("/dasboard") ||
     location.pathname === "/admin" ||
     location.pathname.startsWith("/admin/");
 
@@ -115,14 +117,42 @@ function App() {
                   path="/client/sertifikasi-sistem-manajemen"
                   element={<ClientManagementSystemCertification />}
                 />
+                <Route
+                  path="/client/kalibrasi/client/pengujian"
+                  element={<Navigate to="/client/pengujian" replace />}
+                />
+                <Route
+                  path="/client/kalibrasi/pengujian"
+                  element={<Navigate to="/client/pengujian" replace />}
+                />
 
-                {/* Rute Dashboard Admin Artikel (Terproteksi Sesi Login JWT) */}
+                {/* Rute Dashboard Admin Artikel & Pengalihan Alias / Typo URL */}
                 <Route
                   path="/admin"
                   element={<Navigate to="/dashboard-artikel" replace />}
                 />
                 <Route
                   path="/admin/*"
+                  element={<Navigate to="/dashboard-artikel" replace />}
+                />
+                <Route
+                  path="/dasboard-artikel"
+                  element={<Navigate to="/dashboard-artikel" replace />}
+                />
+                <Route
+                  path="/dasboard-artikel/*"
+                  element={<Navigate to="/dashboard-artikel" replace />}
+                />
+                <Route
+                  path="/dasboard-artikelagar"
+                  element={<Navigate to="/dashboard-artikel" replace />}
+                />
+                <Route
+                  path="/dasboard"
+                  element={<Navigate to="/dashboard-artikel" replace />}
+                />
+                <Route
+                  path="/dasboard/*"
                   element={<Navigate to="/dashboard-artikel" replace />}
                 />
                 <Route path="/dashboard-artikel" element={<DashboardArtikel />} />
@@ -261,6 +291,9 @@ function App() {
                   path="/layanan/pelatihan/exhouse-training"
                   element={<ExhouseTraining />}
                 />
+
+                {/* Fallback Rute Tidak Dikenal: Arahkan ke Beranda */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             ) : (
               <PageLoader />

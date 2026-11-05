@@ -81,7 +81,7 @@
 
 .exhouse-sub__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 20px;
   margin: 24px 0 36px;
 }
@@ -226,7 +226,7 @@
 
 .exhouse-sub__related-links {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: 16px;
 }
 
@@ -265,6 +265,12 @@
   .service-detail--exhouse-training {
     margin: 24px auto 48px;
     padding: 20px 16px;
+  }
+
+  .exhouse-sub__grid,
+  .exhouse-sub__related-links {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .exhouse-sub__content-body p {

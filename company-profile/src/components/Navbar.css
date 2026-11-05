@@ -274,7 +274,7 @@
 
 @media (max-width: 1024px) {
   :root {
-    --nav-height: 50px;
+    --nav-height: 68px;
   }
 
   .navbar__inner {

@@ -3,72 +3,23 @@ import SeoHead from "../../components/SeoHead";
 import { useState } from "react";
 import LocalizedText from "../../components/LocalizedText";
 import { useLanguage } from "../../context/useLanguage";
+import SilappWorkflowTracker from "../../components/SilappWorkflowTracker";
+import {
+  SILAPP_DOMAIN,
+  fetchCertificateFromApi,
+  renderNamaPabrik,
+  getStatusBadgeClass,
+} from "../../utils/silappTracker";
 import "../Client.css";
 
 const SUBMENU_KEY = "kalibrasi";
-
-async function fetchCertificateFromApi(submenu, noSertifikat) {
-  const encodedNo = encodeURIComponent(noSertifikat);
-  const endpoints = [
-    `/api/sertifikat/${submenu}?no_sertifikat=${encodedNo}`,
-  ];
-
-  let lastError = null;
-  for (const url of endpoints) {
-    try {
-      const response = await fetch(url);
-      const contentType = response.headers.get("content-type") || "";
-      if (!contentType.includes("application/json")) {
-        continue;
-      }
-      const payload = await response.json();
-      return { status: response.status, payload };
-    } catch (err) {
-      lastError = err;
-    }
-  }
-  throw lastError || new Error("Tidak dapat terhubung ke server API MySQL.");
-}
-
-function renderNamaPabrik(namaPabrik) {
-  if (!namaPabrik) return "-";
-  const raw = String(namaPabrik);
-  if (raw.includes("|")) {
-    const [name, city] = raw.split("|").map((s) => s.trim());
-    return (
-      <div>
-        <div className="cert-tracker__factory-name">{name}</div>
-        {city && <div className="cert-tracker__factory-city">{city}</div>}
-      </div>
-    );
-  }
-  if (raw.includes("\n")) {
-    const [name, city] = raw.split("\n").map((s) => s.trim());
-    return (
-      <div>
-        <div className="cert-tracker__factory-name">{name}</div>
-        {city && <div className="cert-tracker__factory-city">{city}</div>}
-      </div>
-    );
-  }
-  return (
-    <div>
-      <div className="cert-tracker__factory-name">{raw}</div>
-    </div>
-  );
-}
-
-function getStatusBadgeClass(statusText) {
-  const norm = String(statusText || "").trim().toLowerCase();
-  if (norm === "aktif") return "cert-tracker__badge--active";
-  if (norm === "ditangguhkan") return "cert-tracker__badge--suspended";
-  return "cert-tracker__badge--revoked";
-}
 
 export default function ClientCalibration() {
   const { t } = useLanguage();
   const [noSertifikat, setNoSertifikat] = useState("");
   const [results, setResults] = useState([]);
+  const [workflow, setWorkflow] = useState(null);
+  const [dataSource, setDataSource] = useState(SILAPP_DOMAIN);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchedQuery, setSearchedQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -79,8 +30,9 @@ export default function ClientCalibration() {
     const trimmed = noSertifikat.trim();
 
     if (!trimmed) {
-      setErrorMsg(t("Silakan masukkan nomor sertifikat terlebih dahulu."));
+      setErrorMsg(t("Silakan masukkan nomor sertifikat atau kode lacak terlebih dahulu."));
       setResults([]);
+      setWorkflow(null);
       setHasSearched(false);
       return;
     }
@@ -95,17 +47,26 @@ export default function ClientCalibration() {
 
       if (status === 404 || !payload.found) {
         setResults([]);
+        setWorkflow(null);
       } else if (status >= 400 || !payload.success) {
         setResults([]);
-        setErrorMsg(payload.message || "Terjadi kesalahan saat memeriksa sertifikat.");
-      } else {
+        setWorkflow(null);
+        setErrorMsg(payload.message || `Terjadi kesalahan saat memeriksa sertifikat pada sistem API ${SILAPP_DOMAIN}.`);
+      } else if (payload.mode === "workflow" || payload.workflow) {
+        setWorkflow(payload.workflow || payload.data?.[0]);
         setResults(Array.isArray(payload.data) ? payload.data : []);
+        setDataSource(payload.source || SILAPP_DOMAIN);
+      } else {
+        setWorkflow(null);
+        setResults(Array.isArray(payload.data) ? payload.data : []);
+        setDataSource(payload.source || SILAPP_DOMAIN);
       }
     } catch {
       setHasSearched(true);
       setResults([]);
+      setWorkflow(null);
       setErrorMsg(
-        "Gagal terhubung ke server backend (port 5000). Pastikan Anda sudah menjalankan 'npm start' dan MySQL di XAMPP sudah Start."
+        `Gagal terhubung ke API ${SILAPP_DOMAIN} maupun backend server. Silakan pastikan koneksi jaringan aktif dan coba beberapa saat lagi.`
       );
     } finally {
       setLoading(false);
@@ -115,6 +76,7 @@ export default function ClientCalibration() {
   const handleClear = () => {
     setNoSertifikat("");
     setResults([]);
+    setWorkflow(null);
     setHasSearched(false);
     setSearchedQuery("");
     setErrorMsg("");
@@ -123,8 +85,8 @@ export default function ClientCalibration() {
   return (
     <>
       <SeoHead
-        title="Tracking Sertifikat Kalibrasi"
-        description="Pelacakan keabsahan sertifikat kalibrasi instrumen ukur dan peralatan kesehatan PT Penilai Standar Uji."
+        title="Tracking Sertifikat Kalibrasi Alat"
+        description="Pelacakan status keabsahan dan masa berlaku sertifikat kalibrasi instrumen industri dan alat kesehatan Laboratorium Kalibrasi PT Penilai Standar Uji."
         canonical="/client/kalibrasi"
         type="service"
         breadcrumbs={[
@@ -149,8 +111,12 @@ export default function ClientCalibration() {
             <LocalizedText as="h1" className="cert-tracker__title">
               Lembaga Kalibrasi
             </LocalizedText>
+            <div className="cert-tracker__api-pill">
+              <span className="cert-tracker__api-pulse" />
+              <span>Data Real-Time API: <strong>{SILAPP_DOMAIN}</strong></span>
+            </div>
             <LocalizedText as="p" className="cert-tracker__subtitle">
-              Masukkan nomor sertifikat untuk mengecek status dan informasi sertifikat yang terdaftar pada layanan ini. Pencarian hanya menampilkan sertifikat yang sesuai dengan nomor yang diinputkan.
+              Masukkan nomor sertifikat kalibrasi atau kode lacak SILAPP untuk memverifikasi keabsahan sertifikat dan rekam ketertelusuran kalibrasi alat.
             </LocalizedText>
           </header>
 
@@ -167,7 +133,7 @@ export default function ClientCalibration() {
                   <input
                     type="text"
                     className="cert-tracker__input"
-                    placeholder={t("Masukkan Nomor Sertifikat (contoh: PSU-LK-2026-KLMN)")}
+                    placeholder={t("Nomor Sertifikat / Kode Lacak (contoh: PSU-LK-2026-KLMN atau SLP26-...)")}
                     value={noSertifikat}
                     onChange={(e) => setNoSertifikat(e.target.value)}
                     aria-label={t("Nomor Sertifikat")}
@@ -185,22 +151,23 @@ export default function ClientCalibration() {
                 </div>
 
                 <button type="submit" className="cert-tracker__btn" disabled={loading}>
-                  {loading ? t("Mencari...") : t("Cek Sertifikat")}
+                  {loading ? t("Melacak...") : t("Cek Sertifikat")}
                 </button>
               </form>
 
-              {hasSearched && !errorMsg && (
+              {hasSearched && !errorMsg && results.length > 0 && (
                 <div className="cert-tracker__meta">
-                  <span>
-                    {results.length} {t("sertifikat")}
+                  <span className="cert-tracker__source-tag">
+                    Terverifikasi via {dataSource}
                   </span>
                 </div>
               )}
             </div>
 
             <div className="cert-tracker__format-hint">
-              <LocalizedText>Contoh Nomor Sertifikat:</LocalizedText>
+              <LocalizedText>Contoh Nomor Sertifikat / Kode Lacak:</LocalizedText>
               <code>PSU-LK-2026-KLMN</code>
+              <code>SLP26-KAL-0045</code>
             </div>
 
             {errorMsg && (
@@ -210,30 +177,36 @@ export default function ClientCalibration() {
               </div>
             )}
 
-            {hasSearched && !errorMsg && results.length === 0 && (
+            {/* Workflow Timeline jika hasil berupa permohonan progres */}
+            {hasSearched && !errorMsg && workflow && (
+              <SilappWorkflowTracker workflow={workflow} onReset={handleClear} />
+            )}
+
+            {/* Tabel Sertifikat Terbit */}
+            {hasSearched && !errorMsg && !workflow && results.length === 0 && (
               <div className="cert-tracker__state cert-tracker__state--notfound">
                 <p className="cert-tracker__state-title">
                   <LocalizedText>Data Sertifikat Tidak Ditemukan</LocalizedText>
                 </p>
                 <p>
-                  {t("Nomor sertifikat")} <strong>{searchedQuery}</strong>{" "}
-                  {t("tidak ditemukan pada database")}{" "}
-                  <strong>{t("Lembaga Kalibrasi")}</strong>.
+                  {t("Nomor sertifikat / kode lacak")} <strong>{searchedQuery}</strong>{" "}
+                  {t("tidak ditemukan pada database")} <strong>{t("Lembaga Kalibrasi")}</strong>{" "}
+                  {t("di sistem API")} <strong>{SILAPP_DOMAIN}</strong>.
                 </p>
               </div>
             )}
 
-            {hasSearched && !errorMsg && results.length > 0 && (
+            {hasSearched && !errorMsg && !workflow && results.length > 0 && (
               <div className="cert-tracker__table-wrap">
                 <table className="cert-tracker__table">
                   <thead>
                     <tr>
-                      <th><LocalizedText>Nama Pabrik</LocalizedText></th>
-                      <th><LocalizedText>Produk</LocalizedText></th>
-                      <th><LocalizedText>Nomor SNI</LocalizedText></th>
-                      <th><LocalizedText>Nomor Sertifikat</LocalizedText></th>
+                      <th><LocalizedText>Nama Pemilik / Faskes</LocalizedText></th>
+                      <th><LocalizedText>Instrumen / Alat</LocalizedText></th>
+                      <th><LocalizedText>Nomor Standar / Metode</LocalizedText></th>
+                      <th><LocalizedText>Nomor Sertifikat Kalibrasi</LocalizedText></th>
                       <th><LocalizedText>Terbit</LocalizedText></th>
-                      <th><LocalizedText>Berlaku s.d.</LocalizedText></th>
+                      <th><LocalizedText>Kalibrasi Ulang</LocalizedText></th>
                       <th><LocalizedText>Status</LocalizedText></th>
                     </tr>
                   </thead>

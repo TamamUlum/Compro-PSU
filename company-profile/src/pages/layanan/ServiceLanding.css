@@ -264,30 +264,138 @@
 
 /* Responsive Media Queries */
 @media (max-width: 900px) {
+  .service-landing {
+    width: min(100% - 32px, var(--site-max-width));
+    padding: 36px 0 60px;
+  }
   .service-landing__hero {
     grid-template-columns: 1fr;
     padding: 28px;
     gap: 28px;
+    margin-bottom: 36px;
   }
   .service-landing__hero-media {
     height: 280px;
   }
   .service-landing__title {
-    font-size: 1.75rem;
+    font-size: clamp(1.6rem, 4.2vw, 1.85rem);
   }
   .service-landing__commitment {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     padding: 28px;
+    gap: 20px;
   }
 }
 
 @media (max-width: 600px) {
   .service-landing {
-    padding: 32px 16px 64px;
+    width: min(100% - 24px, var(--site-max-width));
+    padding: 24px 0 48px;
+  }
+  .service-landing__hero {
+    padding: 22px 18px;
+    gap: 22px;
+    border-radius: 14px;
+    margin-bottom: 32px;
+  }
+  .service-landing__hero-media {
+    height: 220px;
+    border-radius: 10px;
+  }
+  .service-landing__hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+  .service-landing__btn-primary,
+  .service-landing__btn-secondary {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 12px 16px;
+  }
+  .service-landing__badge-row {
+    gap: 8px;
+  }
+  .service-landing__badge {
+    padding: 5px 11px;
+    font-size: 0.76rem;
+    letter-spacing: 0.3px;
+  }
+  .service-landing__title {
+    font-size: clamp(1.4rem, 5.5vw, 1.65rem);
+    word-break: break-word;
+  }
+  .service-landing__lead {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .service-landing__section-header {
+    margin-bottom: 24px;
+  }
+  .service-landing__section-title {
+    font-size: clamp(1.3rem, 5vw, 1.55rem);
+    word-break: break-word;
+  }
+  .service-landing__section-subtitle {
+    font-size: 0.9rem;
   }
   .service-landing__grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .service-landing__card {
+    padding: 20px 18px;
+  }
+  .service-landing__commitment {
+    padding: 22px 18px;
+    border-radius: 14px;
+  }
+  .service-landing__commitment-text h3 {
+    font-size: 1.25rem;
+    word-break: break-word;
+  }
+  .service-landing__commitment-text p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+  .service-landing__commitment-cta {
+    width: 100%;
+  }
+  .service-landing__commitment-cta .service-landing__btn-primary {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 375px) {
+  .service-landing {
+    width: min(100% - 16px, var(--site-max-width));
+    padding: 20px 0 40px;
+  }
+  .service-landing__hero {
+    padding: 18px 14px;
+    gap: 18px;
+  }
+  .service-landing__hero-media {
+    height: 190px;
+  }
+  .service-landing__badge {
+    padding: 4px 9px;
+    font-size: 0.72rem;
+  }
+  .service-landing__title {
+    font-size: 1.35rem;
+  }
+  .service-landing__card {
+    padding: 18px 14px;
+  }
+  .service-landing__commitment {
+    padding: 20px 14px;
   }
 }
 

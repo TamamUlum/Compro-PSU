@@ -125,6 +125,12 @@ a.header-top__item:focus-visible {
   }
 }
 
+@media (max-width: 520px) {
+  .header-top__hours {
+    display: none;
+  }
+}
+
 @media (min-width: 861px) and (max-width: 1024px) {
   .header-top__language {
     display: none;
