@@ -13,6 +13,7 @@ const english = {
   "Proses Sertifikasi": "Certification Process",
   "Tipe 1B": "Type 1B",
   "Tipe 5": "Type 5",
+  "Ketentuan dan Cara Penggunaan SNI": "Terms and Procedures for Using SNI",
   "Ketentuan dan Tata Cara Penggunaan SNI": "Terms and Procedures for Using SNI",
   "Keluhan dan Banding": "Complaints and Appeals",
   "Hak dan Kewajiban Klien": "Client Rights and Obligations",
