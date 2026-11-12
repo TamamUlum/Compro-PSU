@@ -240,7 +240,7 @@ export default function Artikel() {
 
                   <Link to={`/artikel/${item.slug}`} className="news-card__more">
                     <span>{lang === "en" ? "Read more" : "Baca selengkapnya"}</span>
-                    <span aria-hidden="true">&rarr;</span>
+                    <span aria-hidden="true">→</span>
                   </Link>
                 </article>
               );

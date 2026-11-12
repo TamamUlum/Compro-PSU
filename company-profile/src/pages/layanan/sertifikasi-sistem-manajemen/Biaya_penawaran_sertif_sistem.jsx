@@ -259,8 +259,8 @@ export default function Biayapenawaransertifsistem() {
               >
                 <span className="biayasistem-sub__related-title">
                   {lang === "en"
-                    ? "Certification Workflow &rarr;"
-                    : "Tahapan Proses Sertifikasi &rarr;"}
+                    ? "Certification Workflow →"
+                    : "Tahapan Proses Sertifikasi →"}
                 </span>
                 <span className="biayasistem-sub__related-desc">
                   {lang === "en"
@@ -274,8 +274,8 @@ export default function Biayapenawaransertifsistem() {
               >
                 <span className="biayasistem-sub__related-title">
                   {lang === "en"
-                    ? "Scope of Services &rarr;"
-                    : "Ruang Lingkup LSSM &rarr;"}
+                    ? "Scope of Services →"
+                    : "Ruang Lingkup LSSM →"}
                 </span>
                 <span className="biayasistem-sub__related-desc">
                   {lang === "en"
@@ -289,8 +289,8 @@ export default function Biayapenawaransertifsistem() {
               >
                 <span className="biayasistem-sub__related-title">
                   {lang === "en"
-                    ? "Client Rights & Duties &rarr;"
-                    : "Hak dan Kewajiban Klien &rarr;"}
+                    ? "Client Rights & Duties →"
+                    : "Hak dan Kewajiban Klien →"}
                 </span>
                 <span className="biayasistem-sub__related-desc">
                   {lang === "en"

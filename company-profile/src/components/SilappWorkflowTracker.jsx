@@ -1,7 +1,9 @@
 import LocalizedText from "./LocalizedText";
+import { useLanguage } from "../context/useLanguage";
 import { SILAPP_BASE_URL, SILAPP_DOMAIN } from "../utils/silappTracker";
 
 export default function SilappWorkflowTracker({ workflow, onReset }) {
+  const { t } = useLanguage();
   if (!workflow) return null;
 
   const currentStep = workflow.current_step || {};
@@ -14,13 +16,13 @@ export default function SilappWorkflowTracker({ workflow, onReset }) {
         <div className="cert-tracker__workflow-title-wrap">
           <div className="cert-tracker__workflow-badge">
             <span className="cert-tracker__workflow-pulse" />
-            <span>Alur Permohonan Aktif</span>
+            <span><LocalizedText>Alur Permohonan Aktif</LocalizedText></span>
           </div>
           <h3 className="cert-tracker__workflow-appno">
             {workflow.application_no || workflow.tracking_code}
           </h3>
           <p className="cert-tracker__workflow-service">
-            {workflow.service_name || "Layanan Penilaian Standar Uji"}
+            {workflow.service_name ? t(workflow.service_name) : t("Layanan Penilaian Standar Uji")}
           </p>
         </div>
       </div>
@@ -29,10 +31,10 @@ export default function SilappWorkflowTracker({ workflow, onReset }) {
       <div className="cert-tracker__progress-section">
         <div className="cert-tracker__progress-labels">
           <span className="cert-tracker__progress-stage">
-            Tahap {currentStep.order || currentStep.index || 1} dari {currentStep.total || steps.length || 7}:{" "}
-            <strong>{currentStep.name || "Pemrosesan Berkas"}</strong>
+            {t("Tahap")} {currentStep.order || currentStep.index || 1} {t("dari")} {currentStep.total || steps.length || 7}:{" "}
+            <strong>{currentStep.name ? t(currentStep.name) : t("Pemrosesan Berkas")}</strong>
           </span>
-          <span className="cert-tracker__progress-pct">{progressPct}% Selesai</span>
+          <span className="cert-tracker__progress-pct">{progressPct}% {t("Selesai")}</span>
         </div>
         <div className="cert-tracker__progress-bar">
           <div
@@ -45,30 +47,30 @@ export default function SilappWorkflowTracker({ workflow, onReset }) {
       {/* Kondisi Status */}
       <div className="cert-tracker__status-grid">
         <div className="cert-tracker__status-box">
-          <span className="cert-tracker__status-label">Kode Lacak (Tracking Code)</span>
+          <span className="cert-tracker__status-label"><LocalizedText>Kode Lacak (Tracking Code)</LocalizedText></span>
           <span className="cert-tracker__status-value cert-tracker__mono">
             {workflow.tracking_code || "-"}
           </span>
         </div>
         <div className="cert-tracker__status-box">
-          <span className="cert-tracker__status-label">Status Saat Ini</span>
+          <span className="cert-tracker__status-label"><LocalizedText>Status Saat Ini</LocalizedText></span>
           <span className="cert-tracker__status-value">
             <span className="cert-tracker__badge cert-tracker__badge--active">
               <span className="cert-tracker__badge-dot" />
-              {workflow.condition || "On Progress"}
+              {workflow.condition ? t(workflow.condition) : "On Progress"}
             </span>
           </span>
         </div>
         <div className="cert-tracker__status-box">
-          <span className="cert-tracker__status-label">Estimasi Pengerjaan</span>
+          <span className="cert-tracker__status-label"><LocalizedText>Estimasi Pengerjaan</LocalizedText></span>
           <span className="cert-tracker__status-value">
-            {workflow.service_est || "Estimasi 14 - 30 hari kerja"}
+            {workflow.service_est ? t(workflow.service_est) : t("Estimasi 14 - 30 hari kerja")}
           </span>
         </div>
         <div className="cert-tracker__status-box">
-          <span className="cert-tracker__status-label">Update Terakhir</span>
+          <span className="cert-tracker__status-label"><LocalizedText>Update Terakhir</LocalizedText></span>
           <span className="cert-tracker__status-value">
-            {workflow.updated_at || workflow.last_update || "Hari ini"}
+            {workflow.updated_at || workflow.last_update || t("Hari ini")}
           </span>
         </div>
       </div>
@@ -95,9 +97,9 @@ export default function SilappWorkflowTracker({ workflow, onReset }) {
                     {isDone ? "✓" : idx + 1}
                   </div>
                   <div className="cert-tracker__step-content">
-                    <span className="cert-tracker__step-name">{st.name}</span>
+                    <span className="cert-tracker__step-name">{t(st.name)}</span>
                     <span className="cert-tracker__step-status">
-                      {isDone ? "Selesai" : isCurrent ? "Sedang Berjalan" : "Menunggu"}
+                      {isDone ? t("Selesai") : isCurrent ? t("Sedang Berjalan") : t("Menunggu")}
                     </span>
                   </div>
                 </div>
@@ -115,7 +117,7 @@ export default function SilappWorkflowTracker({ workflow, onReset }) {
           rel="noopener noreferrer"
           className="cert-tracker__btn cert-tracker__btn--portal"
         >
-          <span>Masuk ke Portal SILAPP</span>
+          <span><LocalizedText>Masuk ke Portal SILAPP</LocalizedText></span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
             <polyline points="15 3 21 3 21 9" />
@@ -129,7 +131,7 @@ export default function SilappWorkflowTracker({ workflow, onReset }) {
             className="cert-tracker__btn cert-tracker__btn--secondary"
             onClick={onReset}
           >
-            Lacak Nomor Lain
+            <LocalizedText>Lacak Nomor Lain</LocalizedText>
           </button>
         )}
       </div>

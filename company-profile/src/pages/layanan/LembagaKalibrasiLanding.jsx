@@ -91,9 +91,9 @@ export default function LembagaKalibrasiLanding() {
         <div className="service-landing__hero">
           <div className="service-landing__hero-content">
             <div className="service-landing__badge-row">
-              <span className="service-landing__badge">KETERTELUSURAN METROLOGI</span>
-              <span className="service-landing__badge service-landing__badge--gold">STANDAR NASIONAL</span>
-              <span className="service-landing__badge">ALAT KESEHATAN</span>
+              <span className="service-landing__badge">{t("KETERTELUSURAN METROLOGI")}</span>
+              <span className="service-landing__badge service-landing__badge--gold">{t("STANDAR NASIONAL")}</span>
+              <span className="service-landing__badge">{t("ALAT KESEHATAN")}</span>
             </div>
             <h1 className="service-landing__title">{title}</h1>
             <p className="service-landing__lead">

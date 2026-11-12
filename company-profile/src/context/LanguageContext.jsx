@@ -13,6 +13,9 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     window.localStorage.setItem("psu-lang", lang);
+    if (typeof document !== "undefined" && document.documentElement) {
+      document.documentElement.lang = lang;
+    }
   }, [lang]);
 
   const toggleLang = () => {

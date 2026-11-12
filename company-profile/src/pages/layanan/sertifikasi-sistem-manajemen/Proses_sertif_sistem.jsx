@@ -248,8 +248,8 @@ export default function Prosessertifsistem() {
               >
                 <span className="proses-sub__related-title">
                   {lang === "en"
-                    ? "Certification Scope &rarr;"
-                    : "Ruang Lingkup LSSM &rarr;"}
+                    ? "Certification Scope →"
+                    : "Ruang Lingkup LSSM →"}
                 </span>
                 <span className="proses-sub__related-desc">
                   {lang === "en"
@@ -263,8 +263,8 @@ export default function Prosessertifsistem() {
               >
                 <span className="proses-sub__related-title">
                   {lang === "en"
-                    ? "Fees & Quotation &rarr;"
-                    : "Biaya dan Penawaran Sertifikasi &rarr;"}
+                    ? "Fees & Quotation →"
+                    : "Biaya dan Penawaran Sertifikasi →"}
                 </span>
                 <span className="proses-sub__related-desc">
                   {lang === "en"
@@ -278,8 +278,8 @@ export default function Prosessertifsistem() {
               >
                 <span className="proses-sub__related-title">
                   {lang === "en"
-                    ? "Client Rights & Duties &rarr;"
-                    : "Hak dan Kewajiban Klien &rarr;"}
+                    ? "Client Rights & Duties →"
+                    : "Hak dan Kewajiban Klien →"}
                 </span>
                 <span className="proses-sub__related-desc">
                   {lang === "en"

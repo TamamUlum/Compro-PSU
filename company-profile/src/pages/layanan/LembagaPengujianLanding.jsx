@@ -60,7 +60,7 @@ const SUBMENUS = [
 ];
 
 export default function LembagaPengujianLanding() {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
 
   const title =
     lang === "en" ? "Testing Laboratory" : "Lembaga Pengujian (Laboratorium Uji)";
@@ -103,7 +103,7 @@ export default function LembagaPengujianLanding() {
         <div className="service-landing__hero">
           <div className="service-landing__hero-content">
             <div className="service-landing__badge-row">
-              <span className="service-landing__badge">AKREDITASI KAN</span>
+              <span className="service-landing__badge">{t("AKREDITASI KAN")}</span>
               <span className="service-landing__badge service-landing__badge--gold">LP-1554-IDN</span>
               <span className="service-landing__badge">SNI ISO/IEC 17025:2017</span>
             </div>

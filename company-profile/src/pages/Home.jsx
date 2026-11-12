@@ -584,7 +584,7 @@ export default function Home() {
                     className="home-news__learn-more"
                   >
                     <span>{lang === "en" ? "Learn more" : "Selengkapnya"}</span>
-                    <span aria-hidden="true">&rarr;</span>
+                    <span aria-hidden="true">→</span>
                   </Link>
                 </article>
               );

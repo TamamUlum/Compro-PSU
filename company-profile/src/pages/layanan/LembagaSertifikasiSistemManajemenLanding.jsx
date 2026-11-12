@@ -89,7 +89,7 @@ const SUBMENUS = [
 ];
 
 export default function LembagaSertifikasiSistemManajemenLanding() {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
 
   const title =
     lang === "en"
@@ -134,7 +134,7 @@ export default function LembagaSertifikasiSistemManajemenLanding() {
         <div className="service-landing__hero">
           <div className="service-landing__hero-content">
             <div className="service-landing__badge-row">
-              <span className="service-landing__badge">SISTEM MANAJEMEN</span>
+              <span className="service-landing__badge">{t("SISTEM MANAJEMEN")}</span>
               <span className="service-landing__badge service-landing__badge--gold">ISO 9001 | ISO 14001</span>
               <span className="service-landing__badge">ISO 22000</span>
             </div>

@@ -32,7 +32,7 @@ export default function Prosespenguji() {
             <span>01</span>
             <span className="testing-process__index-line" />
             <span>11</span>
-            <small>TAHAPAN</small>
+            <small><LocalizedText>TAHAPAN</LocalizedText></small>
           </div>
         </header>
 

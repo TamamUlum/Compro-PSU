@@ -236,8 +236,8 @@ export default function Hakkewajibankliensertifsistem() {
               >
                 <span className="hakkewajiban-sub__related-title">
                   {lang === "en"
-                    ? "Certification Workflow &rarr;"
-                    : "Tahapan Proses Sertifikasi &rarr;"}
+                    ? "Certification Workflow →"
+                    : "Tahapan Proses Sertifikasi →"}
                 </span>
                 <span className="hakkewajiban-sub__related-desc">
                   {lang === "en"
@@ -251,8 +251,8 @@ export default function Hakkewajibankliensertifsistem() {
               >
                 <span className="hakkewajiban-sub__related-title">
                   {lang === "en"
-                    ? "Complaints & Appeals &rarr;"
-                    : "Keluhan dan Banding &rarr;"}
+                    ? "Complaints & Appeals →"
+                    : "Keluhan dan Banding →"}
                 </span>
                 <span className="hakkewajiban-sub__related-desc">
                   {lang === "en"
@@ -266,8 +266,8 @@ export default function Hakkewajibankliensertifsistem() {
               >
                 <span className="hakkewajiban-sub__related-title">
                   {lang === "en"
-                    ? "Certification Scope &rarr;"
-                    : "Ruang Lingkup LSSM &rarr;"}
+                    ? "Certification Scope →"
+                    : "Ruang Lingkup LSSM →"}
                 </span>
                 <span className="hakkewajiban-sub__related-desc">
                   {lang === "en"

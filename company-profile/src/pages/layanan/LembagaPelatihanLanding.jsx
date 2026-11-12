@@ -47,7 +47,7 @@ const SUBMENUS = [
 ];
 
 export default function LembagaPelatihanLanding() {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
 
   const title =
     lang === "en" ? "Training Institution" : "Lembaga Pelatihan";
@@ -90,9 +90,9 @@ export default function LembagaPelatihanLanding() {
         <div className="service-landing__hero">
           <div className="service-landing__hero-content">
             <div className="service-landing__badge-row">
-              <span className="service-landing__badge">PENGEMBANGAN SDM</span>
-              <span className="service-landing__badge service-landing__badge--gold">SNI & ISO</span>
-              <span className="service-landing__badge">INSTRUKTUR PRAKTISI</span>
+              <span className="service-landing__badge">{t("PENGEMBANGAN SDM")}</span>
+              <span className="service-landing__badge service-landing__badge--gold">{t("SNI & ISO")}</span>
+              <span className="service-landing__badge">{t("INSTRUKTUR PRAKTISI")}</span>
             </div>
             <h1 className="service-landing__title">{title}</h1>
             <p className="service-landing__lead">

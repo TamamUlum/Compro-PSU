@@ -1257,7 +1257,56 @@ const certificationRightsEnglish = {
   "This article is not available in English yet.",
 };
 
-Object.assign(english, additionalEnglish, certificationRightsEnglish);
+const silappAndResponsiveEnglish = {
+  // Client Tracking & SILAPP Integration
+  "Tahapan Siklus Layanan": "Service Lifecycle Stages",
+  "Silakan masukkan nomor sertifikat atau kode lacak terlebih dahulu.":
+    "Please enter a certificate number or tracking code first.",
+  "Gagal terhubung ke server. Silakan pastikan koneksi jaringan aktif dan coba beberapa saat lagi.":
+    "Failed to connect to server. Please check your network connection and try again.",
+  "Melacak...": "Tracking...",
+  "Nama Pemilik / Faskes": "Owner / Healthcare Facility Name",
+  "Instrumen / Alat": "Instrument / Medical Device",
+  "Nomor Standar / Metode": "Standard / Method Number",
+  "Nomor Sertifikat Kalibrasi": "Calibration Certificate Number",
+  "Kalibrasi Ulang": "Recalibration",
+  "Nama Perusahaan / Organisasi": "Company / Organization Name",
+  "Standar Acuan": "Reference Standard",
+  "Nama Pabrik / Perusahaan": "Factory / Company Name",
+  "Produk Diuji": "Tested Product",
+  "Nomor SNI / Metode": "SNI / Method Number",
+  "Nomor Sertifikat / LHU": "Certificate / Test Report Number",
+  "Alur Permohonan Aktif": "Active Application Workflow",
+  "Tahap": "Stage",
+  "dari": "of",
+  "Selesai": "Completed",
+  "Sedang Berjalan": "In Progress",
+  "Menunggu": "Pending",
+  "Kode Lacak (Tracking Code)": "Tracking Code",
+  "Status Saat Ini": "Current Status",
+  "Estimasi Pengerjaan": "Estimated Completion",
+  "Update Terakhir": "Last Update",
+  "Masuk ke Portal SILAPP": "Access SILAPP Portal",
+  "Lacak Nomor Lain": "Track Another Number",
+  "Pemrosesan Berkas": "Document Processing",
+  "Estimasi 14 - 30 hari kerja": "Estimated 14 - 30 working days",
+  "Hari ini": "Today",
+  "Layanan Penilaian Standar Uji": "Conformity Assessment Service",
+  "Layanan pengujian kami memastikan bahwa instrumen pengukuran industri dan peralatan medis fasilitas kesehatan bekerja dengan akurasi terverifikasi dan tertelusur langsung ke Standar Satuan Internasional (SI).":
+    "Our calibration services ensure that critical measuring instruments and clinical healthcare devices operate with guaranteed accuracy and direct traceability to International System of Units (SI).",
+
+  // Service Landing Badges & Subpages
+  "KETERTELUSURAN METROLOGI": "METROLOGICAL TRACEABILITY",
+  "STANDAR NASIONAL": "NATIONAL STANDARDS",
+  "ALAT KESEHATAN": "MEDICAL DEVICES",
+  "PENGEMBANGAN SDM": "HUMAN CAPITAL DEVELOPMENT",
+  "INSTRUKTUR PRAKTISI": "PRACTITIONER INSTRUCTORS",
+  "SISTEM MANAJEMEN": "MANAGEMENT SYSTEM",
+  "SNI & ISO": "SNI & ISO",
+  "AKREDITASI KAN": "KAN ACCREDITATION",
+};
+
+Object.assign(english, additionalEnglish, certificationRightsEnglish, silappAndResponsiveEnglish);
 
 const articleLabelsIndonesian = {
   News: "Berita",

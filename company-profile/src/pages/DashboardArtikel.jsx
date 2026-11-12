@@ -1405,7 +1405,7 @@ export default function DashboardArtikel() {
           </form>
 
           <div className="admin-auth-footer">
-            <Link to="/artikel">&larr; Lihat Halaman Artikel Publik</Link>
+            <Link to="/artikel">← Lihat Halaman Artikel Publik</Link>
             <Link to="/">Beranda Website</Link>
           </div>
         </div>
@@ -1709,7 +1709,7 @@ export default function DashboardArtikel() {
                       className="cms-icon-btn cms-icon-btn--primary"
                       onClick={() => switchTab("articles")}
                     >
-                      Lihat Semua ({articles.length}) &rarr;
+                      Lihat Semua ({articles.length}) →
                     </button>
                   </div>
 
@@ -2250,7 +2250,7 @@ export default function DashboardArtikel() {
                     className="cms-icon-btn"
                     onClick={() => switchTab("articles")}
                   >
-                    &larr; Kembali ke Daftar Artikel
+                    ← Kembali ke Daftar Artikel
                   </button>
                 </div>
               </div>

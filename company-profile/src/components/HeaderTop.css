@@ -28,7 +28,7 @@
   padding: 0 clamp(20px, 4vw, 56px);
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: clamp(14px, 2vw, 32px);
 }
 
 .header-top__item {
@@ -127,12 +127,6 @@ a.header-top__item:focus-visible {
 
 @media (max-width: 520px) {
   .header-top__hours {
-    display: none;
-  }
-}
-
-@media (min-width: 861px) and (max-width: 1024px) {
-  .header-top__language {
     display: none;
   }
 }

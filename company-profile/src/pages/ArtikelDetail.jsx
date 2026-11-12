@@ -80,7 +80,7 @@ export default function ArtikelDetail() {
         <section className="news-detail">
           <div className="news-detail__container">
             <Link to="/artikel" className="news-detail__back">
-              <span>&larr;</span>
+              <span>←</span>
               <span>{lang === "en" ? "Back to News" : "Kembali ke Artikel"}</span>
             </Link>
             <h1 className="news-detail__title">
@@ -133,7 +133,7 @@ export default function ArtikelDetail() {
       <article className="news-detail">
         <div className="news-detail__container">
           <Link to="/artikel" className="news-detail__back">
-            <span aria-hidden="true">&larr;</span>
+            <span aria-hidden="true">←</span>
             <span>{lang === "en" ? "Back to News" : "Kembali ke Artikel"}</span>
           </Link>
 

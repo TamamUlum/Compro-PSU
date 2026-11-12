@@ -244,8 +244,8 @@ export default function Ruanglingkupsertifsistem() {
               >
                 <span className="lssm-sub__related-title">
                   {lang === "en"
-                    ? "Certification Process &rarr;"
-                    : "Tahapan Proses Sertifikasi &rarr;"}
+                    ? "Certification Process →"
+                    : "Tahapan Proses Sertifikasi →"}
                 </span>
                 <span className="lssm-sub__related-desc">
                   {lang === "en"
@@ -259,8 +259,8 @@ export default function Ruanglingkupsertifsistem() {
               >
                 <span className="lssm-sub__related-title">
                   {lang === "en"
-                    ? "Quotation & Pricing &rarr;"
-                    : "Biaya dan Penawaran Sertifikasi &rarr;"}
+                    ? "Quotation & Pricing →"
+                    : "Biaya dan Penawaran Sertifikasi →"}
                 </span>
                 <span className="lssm-sub__related-desc">
                   {lang === "en"
@@ -274,8 +274,8 @@ export default function Ruanglingkupsertifsistem() {
               >
                 <span className="lssm-sub__related-title">
                   {lang === "en"
-                    ? "LSSM Landing Page &rarr;"
-                    : "Pusat Layanan LSSM &rarr;"}
+                    ? "LSSM Landing Page →"
+                    : "Pusat Layanan LSSM →"}
                 </span>
                 <span className="lssm-sub__related-desc">
                   {lang === "en"

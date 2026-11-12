@@ -222,7 +222,7 @@ export default function Generaltraining() {
               }
             >
               <span>{lang === "en" ? "Contact Helpdesk" : "Hubungi Kami"}</span>
-              <span aria-hidden="true">&rarr;</span>
+              <span aria-hidden="true">→</span>
             </Link>
           </div>
         </aside>

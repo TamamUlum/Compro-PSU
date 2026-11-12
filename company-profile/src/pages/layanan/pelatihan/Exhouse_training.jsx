@@ -245,7 +245,7 @@ export default function ExhouseTraining() {
                 className="exhouse-sub__related-card"
               >
                 <span className="exhouse-sub__related-title">
-                  General Training &rarr;
+                  General Training →
                 </span>
                 <span className="exhouse-sub__related-desc">
                   {lang === "en"
@@ -258,7 +258,7 @@ export default function ExhouseTraining() {
                 className="exhouse-sub__related-card"
               >
                 <span className="exhouse-sub__related-title">
-                  Inhouse Training &rarr;
+                  Inhouse Training →
                 </span>
                 <span className="exhouse-sub__related-desc">
                   {lang === "en"
@@ -271,7 +271,7 @@ export default function ExhouseTraining() {
                 className="exhouse-sub__related-card"
               >
                 <span className="exhouse-sub__related-title">
-                  Training Centre &rarr;
+                  Training Centre →
                 </span>
                 <span className="exhouse-sub__related-desc">
                   {lang === "en"

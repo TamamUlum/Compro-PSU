@@ -33,16 +33,14 @@ const sections = [
       {
         id: (
           <>
-            Banding diajukan secara tertulis kepada LSPro PSU paling lambat{" "}
-            <strong>30 (tiga puluh) hari kalender</strong> sejak diterimanya
+            Banding diajukan secara tertulis kepada LSPro PSU paling lambat 30 (tiga puluh) hari kalender sejak diterimanya
             pemberitahuan keputusan sertifikasi, dengan menyertakan alasan serta
             bukti pendukung yang relevan.
           </>
         ),
         en: (
           <>
-            Appeals must be submitted in writing to LSPro PSU no later than{" "}
-            <strong>30 (thirty) calendar days</strong> after receiving the
+            Appeals must be submitted in writing to LSPro PSU no later than 30 (thirty) calendar days after receiving the
             certification decision notice, with relevant reasons and supporting
             evidence.
           </>
@@ -87,90 +85,90 @@ export default function Keluhanbandingsertif() {
         ]}
       />
       <section className="service-detail--keluhan-banding-sertif">
-      <header className="keluhan-banding__header">
-        <span className="keluhan-banding__eyebrow">
-          <LocalizedText>LEMBAGA SERTIFIKASI PRODUK (LSPro)</LocalizedText>
-        </span>
-        <LocalizedText as="h1">
-          <span>Tanggung Gugat, Keluhan dan Banding</span>
-        </LocalizedText>
-        <LocalizedText as="p" className="keluhan-banding__organization">
-          PT Penilai Standar Uji (PSU)
-        </LocalizedText>
-      </header>
-
-      <div className="keluhan-banding__sections">
-        {sections.map((section) => (
-          <section
-            className="keluhan-banding__card"
-            aria-labelledby={section.id}
-            key={section.id}
-          >
-            <div className="keluhan-banding__section-heading">
-              <LocalizedText as="h2" id={section.id}>
-                {section.title}
-              </LocalizedText>
-            </div>
-            <DaftarKetentuan items={section.items} lang={lang} />
-          </section>
-        ))}
-      </div>
-
-      <section
-        className="keluhan-banding__contact"
-        aria-labelledby="penyampaian-keluhan-banding"
-      >
-        <div className="keluhan-banding__contact-heading">
-          <LocalizedText as="h2" id="penyampaian-keluhan-banding">
-            Penyampaian Keluhan dan Banding
+        <header className="keluhan-banding__header">
+          <span className="keluhan-banding__eyebrow">
+            <LocalizedText>LEMBAGA SERTIFIKASI PRODUK (LSPro)</LocalizedText>
+          </span>
+          <LocalizedText as="h1">
+            Tanggung Gugat, Keluhan dan Banding
           </LocalizedText>
-          <LocalizedText as="p">
-            Keluhan, pengaduan, dan banding dapat disampaikan secara tertulis
-            kepada:
+          <LocalizedText as="p" className="keluhan-banding__organization">
+            PT Penilai Standar Uji (PSU)
           </LocalizedText>
+        </header>
+
+        <div className="keluhan-banding__sections">
+          {sections.map((section) => (
+            <section
+              className="keluhan-banding__card"
+              aria-labelledby={section.id}
+              key={section.id}
+            >
+              <div className="keluhan-banding__section-heading">
+                <LocalizedText as="h2" id={section.id}>
+                  {section.title}
+                </LocalizedText>
+              </div>
+              <DaftarKetentuan items={section.items} lang={lang} />
+            </section>
+          ))}
         </div>
 
-        <address className="keluhan-banding__contact-details">
-          <LocalizedText as="h3" className="keluhan-banding__contact-name">
-            LSPro PT Penilai Standar Uji (PSU)
-          </LocalizedText>
-          <p>
-            <LocalizedText as="strong">Ditujukan kepada</LocalizedText>
-            <LocalizedText as="span">
-              Kepala LSPro / Penanggung Jawab Penanganan Keluhan dan Banding
+        <section
+          className="keluhan-banding__contact"
+          aria-labelledby="penyampaian-keluhan-banding"
+        >
+          <div className="keluhan-banding__contact-heading">
+            <LocalizedText as="h2" id="penyampaian-keluhan-banding">
+              Penyampaian Keluhan dan Banding
             </LocalizedText>
-          </p>
-          <p>
-            <LocalizedText as="strong">Email</LocalizedText>
-            <a href="mailto:psuindonesia.info@gmail.com">
-              psuindonesia.info@gmail.com
-            </a>
-          </p>
-          <p>
-            <LocalizedText as="strong">Alamat</LocalizedText>
-            <LocalizedText as="span">
-              Jalan Cipinang Muara 1 No. 21, Kelurahan Pondok Bambu, Kecamatan
-              Duren Sawit, Jakarta Timur, DKI Jakarta
+            <LocalizedText as="p">
+              Keluhan, pengaduan, dan banding dapat disampaikan secara tertulis
+              kepada:
             </LocalizedText>
-          </p>
-          <p>
-            <LocalizedText as="strong">Instagram</LocalizedText>
-            <a
-              href="https://instagram.com/penilaistandaruji"
-              target="_blank"
-              rel="noreferrer"
-            >
-              @penilaistandaruji
-            </a>
-          </p>
-        </address>
+          </div>
 
-        <LocalizedText as="p" className="keluhan-banding__commitment">
-          Setiap keluhan dan banding akan ditangani secara profesional,
-          objektif, transparan, dan menjaga kerahasiaan sesuai prosedur LSPro
-          PSU.
-        </LocalizedText>
-      </section>
+          <address className="keluhan-banding__contact-details">
+            <LocalizedText as="h3" className="keluhan-banding__contact-name">
+              LSPro PT Penilai Standar Uji (PSU)
+            </LocalizedText>
+            <p>
+              <LocalizedText as="strong">Ditujukan kepada</LocalizedText>
+              <LocalizedText as="span">
+                Kepala LSPro / Penanggung Jawab Penanganan Keluhan dan Banding
+              </LocalizedText>
+            </p>
+            <p>
+              <LocalizedText as="strong">Email</LocalizedText>
+              <a href="mailto:psuindonesia.info@gmail.com">
+                psuindonesia.info@gmail.com
+              </a>
+            </p>
+            <p>
+              <LocalizedText as="strong">Alamat</LocalizedText>
+              <LocalizedText as="span">
+                Jalan Cipinang Muara 1 No. 21, Kelurahan Pondok Bambu, Kecamatan
+                Duren Sawit, Jakarta Timur, DKI Jakarta
+              </LocalizedText>
+            </p>
+            <p>
+              <LocalizedText as="strong">Instagram</LocalizedText>
+              <a
+                href="https://instagram.com/penilaistandaruji"
+                target="_blank"
+                rel="noreferrer"
+              >
+                @penilaistandaruji
+              </a>
+            </p>
+          </address>
+
+          <LocalizedText as="p" className="keluhan-banding__commitment">
+            Setiap keluhan dan banding akan ditangani secara profesional,
+            objektif, transparan, dan menjaga kerahasiaan sesuai prosedur LSPro
+            PSU.
+          </LocalizedText>
+        </section>
       </section>
     </>
   );

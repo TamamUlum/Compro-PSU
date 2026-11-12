@@ -203,8 +203,8 @@ export default function Keluhanbandingsertifsistem() {
               >
                 <span className="keluhan-sub__related-title">
                   {lang === "en"
-                    ? "Client Rights & Duties &rarr;"
-                    : "Hak dan Kewajiban Klien &rarr;"}
+                    ? "Client Rights & Duties →"
+                    : "Hak dan Kewajiban Klien →"}
                 </span>
                 <span className="keluhan-sub__related-desc">
                   {lang === "en"
@@ -218,8 +218,8 @@ export default function Keluhanbandingsertifsistem() {
               >
                 <span className="keluhan-sub__related-title">
                   {lang === "en"
-                    ? "Certification Workflow &rarr;"
-                    : "Tahapan Proses Sertifikasi &rarr;"}
+                    ? "Certification Workflow →"
+                    : "Tahapan Proses Sertifikasi →"}
                 </span>
                 <span className="keluhan-sub__related-desc">
                   {lang === "en"
@@ -233,8 +233,8 @@ export default function Keluhanbandingsertifsistem() {
               >
                 <span className="keluhan-sub__related-title">
                   {lang === "en"
-                    ? "Legality & Principles &rarr;"
-                    : "Legalitas & Prinsip Audit &rarr;"}
+                    ? "Legality & Principles →"
+                    : "Legalitas & Prinsip Audit →"}
                 </span>
                 <span className="keluhan-sub__related-desc">
                   {lang === "en"

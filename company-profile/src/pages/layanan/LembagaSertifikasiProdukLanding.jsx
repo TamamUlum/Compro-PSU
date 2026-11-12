@@ -130,7 +130,7 @@ const SUBMENUS = [
 ];
 
 export default function LembagaSertifikasiProdukLanding() {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
 
   const title =
     lang === "en"
@@ -176,7 +176,7 @@ export default function LembagaSertifikasiProdukLanding() {
         <div className="service-landing__hero">
           <div className="service-landing__hero-content">
             <div className="service-landing__badge-row">
-              <span className="service-landing__badge">AKREDITASI KAN</span>
+              <span className="service-landing__badge">{t("AKREDITASI KAN")}</span>
               <span className="service-landing__badge service-landing__badge--gold">LSPr-051-IDN</span>
               <span className="service-landing__badge">SNI ISO/IEC 17065:2012</span>
             </div>

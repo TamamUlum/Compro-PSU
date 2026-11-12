@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useLanguage } from "../context/useLanguage";
 import { buildImageObjectSchema, BASE_SITE_URL } from "../data/imageMetadata";
 
 export const ORGANIZATION_SCHEMA = {
@@ -67,17 +68,23 @@ export default function SeoHead({
   articleData = null,
   serviceData = null,
   primaryImage = "/Logo_PSU_banner1.webp",
-  lang = "id",
+  lang: propLang,
 }) {
+  const { lang: contextLang, t } = useLanguage();
+  const lang = propLang || contextLang || "id";
   const location = useLocation();
   const canonicalPath = canonical || location.pathname;
   const canonicalUrl = `${BASE_SITE_URL}${canonicalPath.startsWith("/") ? canonicalPath : `/${canonicalPath}`}`;
 
   const siteTitle = "PT PENILAI STANDAR UJI (PSU)";
-  const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
+  const localizedTitle = title ? t(title) : "";
+  const fullTitle = localizedTitle ? `${localizedTitle} | ${siteTitle}` : siteTitle;
   const metaDescription =
-    description ||
-    "PT Penilai Standar Uji (PSU) - Lembaga Penilaian Kesesuaian (LPK) independen untuk Sertifikasi Produk SNI, Pengujian Laboratorium, Kalibrasi, dan Pelatihan.";
+    description
+      ? t(description)
+      : lang === "en"
+      ? "PT Penilai Standar Uji (PSU) - Independent Conformity Assessment Body (CAB) accredited by KAN for SNI Product Certification, Laboratory Testing, Calibration, and Training."
+      : "PT Penilai Standar Uji (PSU) - Lembaga Penilaian Kesesuaian (LPK) independen untuk Sertifikasi Produk SNI, Pengujian Laboratorium, Kalibrasi, dan Pelatihan.";
 
   const imageObj = buildImageObjectSchema(primaryImage);
   const imageUrl = imageObj ? imageObj.url : `${BASE_SITE_URL}/Logo_PSU_banner1.webp`;
@@ -280,6 +287,8 @@ export default function SeoHead({
     setMetaProperty("og:image", imageUrl);
     setMetaProperty("og:type", type === "article" ? "article" : "website");
     setMetaProperty("og:site_name", "PT PENILAI STANDAR UJI");
+    setMetaProperty("og:locale", lang === "en" ? "en_US" : "id_ID");
+    setMetaProperty("og:locale:alternate", lang === "en" ? "id_ID" : "en_US");
 
     // JSON-LD Script tag in head
     let scriptEl = document.getElementById("psu-jsonld");
@@ -306,6 +315,8 @@ export default function SeoHead({
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:image" content={imageUrl} />
       <meta property="og:type" content={type === "article" ? "article" : "website"} />
+      <meta property="og:locale" content={lang === "en" ? "en_US" : "id_ID"} />
+      <meta property="og:locale:alternate" content={lang === "en" ? "id_ID" : "en_US"} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonString }}

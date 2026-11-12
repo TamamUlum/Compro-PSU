@@ -620,13 +620,13 @@
 
 @media (min-width: 1025px) {
   .navbar__submenu {
-    width: max-content;
+    width: max-content !important;
   }
 
   .navbar__submenu a,
   .navbar__subheading,
   .navbar__subheading-link {
-    white-space: nowrap;
+    white-space: nowrap !important;
   }
 
   .navbar__submenu li {
@@ -637,10 +637,11 @@
     display: block;
     position: absolute;
     top: -7px;
-    right: 100%;
-    width: max-content;
-    min-width: 190px;
-    margin: 0 10px 0 0;
+    left: 100%;
+    right: auto;
+    width: max-content !important;
+    min-width: 200px;
+    margin: 0 0 0 10px;
     padding: 6px;
     background: #fff;
     border: 1px solid var(--nav-line);
@@ -648,8 +649,15 @@
     box-shadow: 0 12px 32px rgba(20, 35, 59, 0.1);
     opacity: 0;
     visibility: hidden;
-    transform: translateX(4px);
+    transform: translateX(-4px);
     transition: opacity 0.16s, transform 0.16s, visibility 0s 0.16s;
+  }
+
+  .navbar__submenu .navbar__subsub.is-flyout-left {
+    left: auto;
+    right: 100%;
+    margin: 0 10px 0 0;
+    transform: translateX(4px);
   }
 
   .navbar__submenu .navbar__subsub.is-open {
@@ -664,72 +672,75 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    right: -12px;
+    left: -12px;
+    right: auto;
     width: 12px;
   }
 
+  .navbar__submenu .navbar__subsub.is-flyout-left::before {
+    left: auto;
+    right: -12px;
+  }
+
   .navbar__submenu .navbar__subsub a {
-    padding: 11px 12px;
-    font-size: 15px;
+    padding: 10px 14px;
+    font-size: 14px;
     color: var(--nav-ink);
-    white-space: nowrap;
+    white-space: nowrap !important;
   }
 
-  .navbar__subtoggle svg,
-  .navbar__subtoggle[aria-expanded="true"] svg {
-    transform: rotate(-90deg);
-  }
-}
-
-@media (min-width: 1025px) {
-  .navbar__subtoggle svg,
-  .navbar__subtoggle[aria-expanded="true"] svg {
-    transform: rotate(-90deg) !important;
-  }
-}
-
-.navbar__subheading {
-  gap: 16px;
-}
-
-@media (min-width: 1025px) {
-  .navbar__submenu .navbar__subsub.is-constrained a,
-  .navbar__submenu .navbar__subsub.is-constrained .navbar__subheading,
-  .navbar__submenu .navbar__subsub.is-constrained .navbar__subheading-link {
-    white-space: normal;
-  }
-}
-
-@media (min-width: 1025px) {
   .navbar__subrow {
-    flex-direction: row-reverse;
-  }
-
-  .navbar__subheading {
-    justify-content: flex-start;
-    gap: 11px;
-  }
-
-  .navbar__subheading svg {
-    order: -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
   .navbar__subheading-link {
-    padding-left: 0;
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--nav-ink);
+    white-space: nowrap !important;
+  }
+
+  .navbar__subheading {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    padding: 10px 12px 10px 4px;
+    gap: 8px;
+  }
+
+  .navbar__subheading svg {
+    order: 1;
+    transform: rotate(-90deg) !important;
+    transition: transform 0.2s;
+  }
+
+  .navbar__submenu .navbar__subsub.is-flyout-left ~ .navbar__subrow .navbar__subheading svg {
+    transform: rotate(90deg) !important;
   }
 
   .navbar__subheading-link + .navbar__subheading {
     flex: none;
     width: auto;
-    padding: 0 11px 0 12px;
+    padding: 0 10px 0 4px;
   }
 
   .navbar__submenu .navbar__arrow {
     display: none;
   }
+}
 
-  .navbar__submenu:has(> li > .navbar__subrow) > li > a,
-  .navbar__submenu .navbar__subsub:has(> li > .navbar__subrow) > li > a {
-    padding-left: 33px;
+@media (max-width: 1024px) {
+  .navbar__submenu a,
+  .navbar__subsub a,
+  .navbar__subheading-link {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

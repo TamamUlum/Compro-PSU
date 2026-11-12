@@ -218,21 +218,16 @@ const menuLinks = [
 const SUBMENU_GAP = 10;
 const VIEWPORT_MARGIN = 8;
 
-function measureSubmenuWidth(li) {
-  if (!li || window.innerWidth <= 1024) return undefined;
+function determineFlyoutSide(li) {
+  if (!li || typeof window === "undefined" || window.innerWidth <= 1024) return "right";
   const sub = li.querySelector(":scope > .navbar__subsub");
-  if (!sub) return undefined;
-
-  const previousMaxWidth = sub.style.maxWidth;
-  const wasConstrained = sub.classList.contains("is-constrained");
-  sub.style.maxWidth = "none";
-  sub.classList.remove("is-constrained");
-  const width = sub.offsetWidth;
-  sub.style.maxWidth = previousMaxWidth;
-  if (wasConstrained) sub.classList.add("is-constrained");
-
-  const roomLeft = li.getBoundingClientRect().left - SUBMENU_GAP - VIEWPORT_MARGIN;
-  return width > roomLeft ? Math.max(roomLeft, 140) : null;
+  if (!sub) return "right";
+  const subWidth = sub.scrollWidth || sub.offsetWidth || 280;
+  const rect = li.getBoundingClientRect();
+  const spaceRight = window.innerWidth - rect.right - SUBMENU_GAP - VIEWPORT_MARGIN;
+  if (spaceRight >= subWidth) return "right";
+  const spaceLeft = rect.left - SUBMENU_GAP - VIEWPORT_MARGIN;
+  return spaceLeft > spaceRight ? "left" : "right";
 }
 
 const canHover = () =>
@@ -247,29 +242,28 @@ export default function Navbar() {
   const [openSubs, setOpenSubs] = useState(() => new Set());
   const closeTimer = useRef(null);
   const isMobile = useIsMobile(1024);
-  const [subMaxWidth, setSubMaxWidth] = useState({});
+  const [subFlyoutSide, setSubFlyoutSide] = useState({});
 
-  const updateSubWidth = (id, li) => {
-    const next = measureSubmenuWidth(li);
-    if (next === undefined) return;
-    setSubMaxWidth((previous) =>
-      previous[id] === next ? previous : { ...previous, [id]: next }
+  const updateSubPosition = (id, li) => {
+    if (!li || isMobile) return;
+    const side = determineFlyoutSide(li);
+    setSubFlyoutSide((previous) =>
+      previous[id] === side ? previous : { ...previous, [id]: side }
     );
   };
 
   useLayoutEffect(() => {
-    if (!openDropdown) return;
+    if (!openDropdown || isMobile) return;
     document
       .querySelectorAll(".navbar__panel.is-open > .navbar__submenu > li[data-sub-id]")
       .forEach((li) => {
-        const next = measureSubmenuWidth(li);
-        if (next === undefined) return;
         const id = li.dataset.subId;
-        setSubMaxWidth((previous) =>
-          previous[id] === next ? previous : { ...previous, [id]: next }
+        const side = determineFlyoutSide(li);
+        setSubFlyoutSide((previous) =>
+          previous[id] === side ? previous : { ...previous, [id]: side }
         );
       });
-  }, [openDropdown]);
+  }, [openDropdown, isMobile]);
 
   const isActive = (href) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -397,7 +391,7 @@ export default function Navbar() {
         onMouseEnter={(event) => {
           if (!canHover()) return;
           openSub(item.id);
-          updateSubWidth(item.id, event.currentTarget);
+          updateSubPosition(item.id, event.currentTarget);
         }}
         onMouseLeave={() => canHover() && closeSubtree(item.id)}
       >
@@ -422,7 +416,7 @@ export default function Navbar() {
             aria-label={`${t(openSubs.has(item.id) ? "Tutup" : "Buka")} submenu ${t(item.label)}`}
             aria-expanded={openSubs.has(item.id)}
             onClick={(event) => {
-              updateSubWidth(item.id, event.currentTarget.closest("li"));
+              updateSubPosition(item.id, event.currentTarget.closest("li"));
               toggleSub(item.id, ancestors);
             }}
           >
@@ -437,7 +431,9 @@ export default function Navbar() {
                   ? openSubs.has(item.id)
                     ? "rotate(180deg)"
                     : "none"
-                  : "rotate(90deg)",
+                  : subFlyoutSide[item.id] === "left"
+                    ? "rotate(90deg)"
+                    : "rotate(-90deg)",
               }}
             >
               <path
@@ -456,15 +452,10 @@ export default function Navbar() {
           className={[
             "navbar__subsub",
             openSubs.has(item.id) && "is-open",
-            subMaxWidth[item.id] && "is-constrained",
+            subFlyoutSide[item.id] === "left" && "is-flyout-left",
           ]
             .filter(Boolean)
             .join(" ")}
-          style={
-            !isMobile && subMaxWidth[item.id]
-              ? { maxWidth: subMaxWidth[item.id] }
-              : undefined
-          }
         >
           {item.children.map((child, childIndex) =>
             renderSubItem(child, childIndex, [...ancestors, item.id])

@@ -440,6 +440,7 @@
 
 .tipe-5__table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tipe-5__table {

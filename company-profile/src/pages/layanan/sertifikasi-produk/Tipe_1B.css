@@ -190,6 +190,7 @@
 
 .tipe-1b__table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tipe-1b__table {
