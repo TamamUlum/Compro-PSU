@@ -2,12 +2,14 @@
   --service-navy: #0b2a5b;
   --service-text: #1d2733;
   --service-muted: #5b6878;
-  width: calc(100% - 2 * clamp(20px, 5vw, 96px));
+  box-sizing: border-box;
+  width: calc(100% - 2 * clamp(16px, 4vw, 48px));
   max-width: 1180px;
   margin: 0 auto;
-  padding: 48px 0 88px;
+  padding: clamp(28px, 4vw, 48px) 0 clamp(48px, 6vw, 88px);
   color: var(--service-text);
   font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  overflow-wrap: break-word;
 }
 
 .keluhan-banding__header {
@@ -49,11 +51,15 @@
 }
 
 .keluhan-banding__card {
-  padding: clamp(22px, 4vw, 36px);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(20px, 4vw, 36px);
   border: 1px solid #e3e9f0;
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 10px 30px rgb(11 42 91 / 5%);
+  overflow-wrap: break-word;
 }
 
 .keluhan-banding__section-heading {
@@ -132,6 +138,9 @@
 }
 
 .keluhan-banding__contact-details {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   margin: 16px 0 0;
   padding: clamp(18px, 3vw, 26px);
@@ -139,16 +148,20 @@
   border-radius: 12px;
   background: #f7f9fc;
   font-style: normal;
+  overflow: hidden;
+  overflow-wrap: break-word;
 }
 
 .keluhan-banding__contact-name {
   margin: 0 0 8px;
   color: var(--service-navy);
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
   font-weight: 700;
   line-height: 1.5;
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .keluhan-banding__contact-details p {

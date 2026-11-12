@@ -61,7 +61,7 @@ const menuLayanan = [
         ],
       },
       {
-        label: "Ketentuan dan Tata Cara Penggunaan SNI",
+        label: "Ketentuan dan Cara Penggunaan SNI",
         href: "/layanan/sertif-produk/penggunaan-sni",
       },
       {
@@ -401,8 +401,8 @@ export default function Navbar() {
               (child.href && isActive(child.href)) ||
               child.children?.some((grandchild) => isActive(grandchild.href))
           )
-              ? "is-active"
-              : ""
+            ? "is-active"
+            : ""
             }`}
         >
           {item.linkParent && (

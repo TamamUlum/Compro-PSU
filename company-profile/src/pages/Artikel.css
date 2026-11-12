@@ -370,6 +370,8 @@
   font-size: 0.96rem;
   line-height: 1.78;
   color: #1e293b;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .news-detail__about {

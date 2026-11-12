@@ -50,6 +50,12 @@
   }
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
 }
@@ -90,8 +96,35 @@ h2 {
     font-size: 20px;
   }
 }
+
 p {
   margin: 0;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+/* Default paragraph justification across components & prose */
+article p,
+section p,
+main p,
+.site-container p,
+.prose p,
+.service-landing p,
+.service-detail p,
+.keluhan-banding p,
+.ruang-lingkup p,
+.tipe-1b p,
+.tipe-5 p,
+.news-detail p,
+.news-detail__body p,
+.news-card p,
+.profile p,
+.profile-section p,
+.about-showcase p,
+.client-hero p,
+.client-desc p {
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 code,

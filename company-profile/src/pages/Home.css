@@ -63,7 +63,8 @@
 
 .about__body p {
   margin: 0 0 1.1em;
-  text-align: left;
+  text-align: justify;
+  text-justify: inter-word;
   font-size: 1.0625rem;
   line-height: 1.75;
 }

@@ -49,16 +49,20 @@
   font-size: var(--content-font-size, 1.05rem);
   line-height: var(--content-line-height, 1.75);
   color: #334155;
-  text-align: left;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .keluhan-sub__section-card {
+  box-sizing: border-box;
+  max-width: 100%;
   margin: var(--content-section-gap, 28px) 0;
   background: var(--content-box-bg, #ffffff);
   border: 1px solid var(--content-border-color, #e2e8f0);
   border-radius: 12px;
   padding: var(--content-box-padding, 28px);
   box-shadow: 0 4px 16px rgba(7, 26, 64, 0.04);
+  overflow-wrap: break-word;
 }
 
 .keluhan-sub__subheading {

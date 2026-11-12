@@ -62,6 +62,8 @@
   line-height: 1.65;
   color: #4a5568;
   margin: 0 0 24px 0;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .service-landing__hero-actions {
@@ -214,6 +216,8 @@
   color: #4a5568;
   margin: 0 0 18px 0;
   flex-grow: 1;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .service-landing__card-arrow {
@@ -256,6 +260,8 @@
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .service-landing__commitment-cta {
